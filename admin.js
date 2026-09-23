@@ -607,3 +607,316 @@ function deleteLocation(id) {
 }
 
 /* END OF PART A — Part B continues below in same file */
+/* ============ PROGRAMMATIC SEO ============ */
+/* ============ PROGRAMMATIC SEO ============ */
+$('#pgGenerateBtn').addEventListener('click', () => {
+  const service = $('#pgService').value.trim(); const location = $('#pgLocation').value.trim();
+  const business = $('#pgBusiness').value.trim(); const intent = $('#pgIntent').value.trim();
+  if (!service || !location) return toast('warning', 'Service and Location required');
+  const title = `${intent ? intent + ' — ' : ''}${service} in ${location}${business ? ' for ' + business : ''}`;
+  const slug = [service, location, business, intent].filter(Boolean).join('-').toLowerCase().replace(/[^a-z0-9-]/g, '-');
+  $('#pgCandidates').innerHTML = `<div class="card" style="padding:1rem"><div class="flex-between mb"><div><strong>${escapeHTML(title)}</strong><div class="td-muted" style="font-size:0.75rem">/${escapeHTML(slug)}</div></div></div><div class="td-actions"><button class="btn btn-xs btn-ghost" id="pgDiscard">Discard</button><button class="btn btn-xs btn-primary" id="pgQueue">Queue for Approval</button></div></div>`;
+  $('#pgDiscard').addEventListener('click', () => { $('#pgCandidates').innerHTML = ''; });
+  $('#pgQueue').addEventListener('click', async () => {
+    const data = { title, slug, path: '/' + slug, service, location, business_type: business, search_intent: intent, status: 'pending', created_at: new Date().toISOString() };
+    try { await State.supabase.from('seo_pages').insert(data); logActivity('CREATE SEO CANDIDATE', slug); toast('success', 'Queued'); $('#pgCandidates').innerHTML = ''; await loadAllData(); renderPendingPg(); }
+    catch (err) { toast('error', 'Failed', err.message); }
+  });
+});
+
+function renderPendingPg() {
+  const list = State.cache.seoPages.filter(s => s.status === 'pending'); const el = $('#pgPending');
+  if (!el) return;
+  if (!list.length) return el.innerHTML = '<div class="empty" style="padding:1.5rem 1rem"><p>No pending candidates.</p></div>';
+  el.innerHTML = list.map(s => `<div class="info-row"><div><strong>${escapeHTML(s.title || s.slug || '')}</strong><div class="td-muted" style="font-size:0.72rem">/${escapeHTML(s.slug || '')}</div></div><div class="td-actions"><button class="btn btn-xs btn-success" data-pg-approve="${escapeHTML(s.id)}">Approve</button><button class="btn btn-xs btn-danger" data-pg-reject="${escapeHTML(s.id)}">Reject</button></div></div>`).join('');
+  $$('[data-pg-approve]', el).forEach(b => b.addEventListener('click', async () => { await State.supabase.from('seo_pages').update({ status: 'published' }).eq('id', b.dataset.pgApprove); toast('success', 'Published'); await loadAllData(); renderPendingPg(); }));
+  $$('[data-pg-reject]', el).forEach(b => b.addEventListener('click', async () => { await State.supabase.from('seo_pages').delete().eq('id', b.dataset.pgReject); toast('info', 'Rejected'); await loadAllData(); renderPendingPg(); }));
+                                                                                                                                                               }
+/* ============ LEADS CRM ============ */
+$('#leadsSearch').addEventListener('input', debounce(renderLeads, 250));
+$('#leadsFilter').addEventListener('change', renderLeads);
+
+function renderLeads() {
+  const search = ($('#leadsSearch')?.value || '').toLowerCase();
+  const filter = $('#leadsFilter')?.value || '';
+  let list = State.cache.leads.slice();
+  if (search) list = list.filter(l => (l.name || '').toLowerCase().includes(search) || (l.business || '').toLowerCase().includes(search) || (l.email || '').toLowerCase().includes(search));
+  if (filter) list = list.filter(l => l.status === filter);
+  const el = $('#leadsList');
+  if (!list.length) return el.innerHTML = '<div class="empty"><h4>No leads found</h4><p>Leads appear here. Only admins can view them.</p></div>';
+  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Name</th><th>Business</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th><th></th></tr></thead><tbody>${list.slice(0, 100).map(l => `<tr><td data-label="Name"><strong>${escapeHTML(l.name || '')}</strong><div class="td-muted">${escapeHTML(l.whatsapp || '')}</div></td><td data-label="Business">${escapeHTML(l.business || '—')}</td><td data-label="Service">${escapeHTML(l.service || '—')}</td><td data-label="Budget">${escapeHTML(l.budget || '—')}</td><td data-label="Status"><span class="pill pill-${escapeHTML((l.status || 'new').replace('-', ''))}">${escapeHTML(l.status || 'new')}</span></td><td data-label="Date" class="td-muted">${formatDate(l.created_at)}</td><td data-label="Actions"><div class="td-actions"><button class="btn btn-xs btn-ghost" data-view-lead="${escapeHTML(l.id)}">View</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  $$('[data-view-lead]', el).forEach(b => b.addEventListener('click', () => viewLead(b.dataset.viewLead)));
+}
+
+function viewLead(id) {
+  const l = State.cache.leads.find(x => x.id === id); if (!l) return;
+  Modal.open({
+    title: l.name || 'Lead', sub: l.business || '', wide: true,
+    body: `<div class="editor-grid"><div class="field"><label>Name</label><input type="text" value="${escapeHTML(l.name || '')}" readonly></div><div class="field"><label>Business</label><input type="text" value="${escapeHTML(l.business || '')}" readonly></div><div class="field"><label>WhatsApp</label><input type="text" value="${escapeHTML(l.whatsapp || '')}" readonly></div><div class="field"><label>Email</label><input type="text" value="${escapeHTML(l.email || '')}" readonly></div><div class="field"><label>Location</label><input type="text" value="${escapeHTML(l.location || '')}" readonly></div><div class="field"><label>Service</label><input type="text" value="${escapeHTML(l.service || '')}" readonly></div><div class="field"><label>Budget</label><input type="text" value="${escapeHTML(l.budget || '')}" readonly></div><div class="field"><label>Timeline</label><input type="text" value="${escapeHTML(l.timeline || '')}" readonly></div><div class="field" style="grid-column:1/-1"><label>Requirements</label><textarea readonly>${escapeHTML(l.requirements || '')}</textarea></div><div class="field" style="grid-column:1/-1"><label>Internal Notes</label><textarea id="leadNotes">${escapeHTML(l.notes || '')}</textarea></div></div><div class="field mt"><label>Status</label><select id="leadStatus">${['new', 'contacted', 'qualified', 'quotation', 'negotiation', 'won', 'lost', 'follow-up'].map(s => `<option value="${s}"${l.status === s ? ' selected' : ''}>${s}</option>`).join('')}</select></div>`,
+    foot: `<button class="btn btn-ghost" data-cancel>Close</button><button class="btn btn-danger" data-delete>Delete</button><button class="btn btn-primary" data-save>Save</button>`,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        try { await State.supabase.from('leads').update({ status: $('#leadStatus').value, notes: $('#leadNotes').value.trim(), updated_at: new Date().toISOString() }).eq('id', l.id); logActivity('UPDATE LEAD', l.name); toast('success', 'Updated'); Modal.close(); await loadAllData(); renderLeads(); }
+        catch (err) { toast('error', 'Failed', err.message); }
+      });
+      $('[data-delete]').addEventListener('click', () => {
+        confirmDialog({ title: 'Delete lead?', message: `Delete "${l.name}"?`, onConfirm: async () => { await State.supabase.from('leads').delete().eq('id', l.id); logActivity('DELETE LEAD', l.name); toast('success', 'Deleted'); Modal.close(); await loadAllData(); renderLeads(); } });
+      });
+    }
+  });
+}
+
+$('#addLeadBtn').addEventListener('click', () => {
+  Modal.open({
+    title: 'Add Lead',
+    body: `<div class="field-row mb"><div class="field"><label>Name</label><input type="text" id="ldName"></div><div class="field"><label>Business</label><input type="text" id="ldBusiness"></div></div><div class="field-row mb"><div class="field"><label>WhatsApp</label><input type="tel" id="ldWhatsapp"></div><div class="field"><label>Email</label><input type="email" id="ldEmail"></div></div><div class="field-row mb"><div class="field"><label>Location</label><input type="text" id="ldLocation"></div><div class="field"><label>Service</label><input type="text" id="ldService"></div></div><div class="field-row mb"><div class="field"><label>Budget</label><input type="text" id="ldBudget"></div><div class="field"><label>Timeline</label><input type="text" id="ldTimeline"></div></div><div class="field mb"><label>Requirements</label><textarea id="ldReq" rows="3"></textarea></div>`,
+    foot: `<button class="btn btn-ghost" data-cancel>Cancel</button><button class="btn btn-primary" data-save>Save</button>`,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = { name: $('#ldName').value.trim(), business: $('#ldBusiness').value.trim(), whatsapp: $('#ldWhatsapp').value.trim(), email: $('#ldEmail').value.trim(), location: $('#ldLocation').value.trim(), service: $('#ldService').value.trim(), budget: $('#ldBudget').value.trim(), timeline: $('#ldTimeline').value.trim(), requirements: $('#ldReq').value.trim(), status: 'new', source: 'admin', created_at: new Date().toISOString() };
+        if (!data.name) return toast('warning', 'Name required');
+        try { await State.supabase.from('leads').insert(data); logActivity('CREATE LEAD', data.name); toast('success', 'Added'); Modal.close(); await loadAllData(); renderLeads(); }
+        catch (err) { toast('error', 'Failed', err.message); }
+      });
+    }
+  });
+});
+/* ============ PROJECTS ============ */
+function renderProjects() {
+  const list = State.cache.projects; const el = $('#projectsList');
+  if (!list.length) return el.innerHTML = '<div class="empty"><h4>No projects</h4><p>Track active client projects.</p></div>';
+  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Project</th><th>Client</th><th>Status</th><th>Deadline</th><th></th></tr></thead><tbody>${list.map(p => `<tr><td data-label="Project"><strong>${escapeHTML(p.name || '')}</strong></td><td data-label="Client">${escapeHTML(p.client || '—')}</td><td data-label="Status"><span class="pill pill-${escapeHTML((p.status || 'planning').replace('-', ''))}">${escapeHTML(p.status || 'planning')}</span></td><td data-label="Deadline" class="td-muted">${formatDate(p.deadline)}</td><td data-label="Actions"><div class="td-actions"><button class="btn btn-xs btn-ghost" data-edit-proj="${escapeHTML(p.id)}">Edit</button><button class="btn btn-xs btn-danger" data-del-proj="${escapeHTML(p.id)}">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  $$('[data-edit-proj]', el).forEach(b => b.addEventListener('click', () => editProject(b.dataset.editProj)));
+  $$('[data-del-proj]', el).forEach(b => b.addEventListener('click', () => deleteProject(b.dataset.delProj)));
+}
+$('#addProjectBtn').addEventListener('click', () => editProject(null));
+function editProject(id) {
+  const p = id ? State.cache.projects.find(x => x.id === id) : null;
+  Modal.open({
+    title: p ? 'Edit Project' : 'Add Project',
+    body: `<div class="field mb"><label>Project Name</label><input type="text" id="pjName" value="${escapeHTML(p?.name || '')}"></div><div class="field mb"><label>Client</label><input type="text" id="pjClient" value="${escapeHTML(p?.client || '')}"></div><div class="field mb"><label>Service</label><input type="text" id="pjService" value="${escapeHTML(p?.service || '')}"></div><div class="field-row mb"><div class="field"><label>Start Date</label><input type="date" id="pjStart" value="${p?.start_date || ''}"></div><div class="field"><label>Deadline</label><input type="date" id="pjDeadline" value="${p?.deadline || ''}"></div></div><div class="field-row mb"><div class="field"><label>Budget</label><input type="text" id="pjBudget" value="${escapeHTML(p?.budget || '')}"></div><div class="field"><label>Status</label><select id="pjStatus">${['planning', 'design', 'development', 'testing', 'client-review', 'completed', 'on-hold', 'cancelled'].map(s => `<option value="${s}"${p?.status === s ? ' selected' : ''}>${s}</option>`).join('')}</select></div></div><div class="field mb"><label>Notes</label><textarea id="pjNotes" rows="3">${escapeHTML(p?.notes || '')}</textarea></div>`,
+    foot: `<button class="btn btn-ghost" data-cancel>Cancel</button><button class="btn btn-primary" data-save>Save</button>`,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = { name: $('#pjName').value.trim(), client: $('#pjClient').value.trim(), service: $('#pjService').value.trim(), start_date: $('#pjStart').value || null, deadline: $('#pjDeadline').value || null, budget: $('#pjBudget').value.trim(), status: $('#pjStatus').value, notes: $('#pjNotes').value.trim(), updated_at: new Date().toISOString() };
+        if (!data.name) return toast('warning', 'Name required');
+        try { if (p) await State.supabase.from('business_projects').update(data).eq('id', p.id); else await State.supabase.from('business_projects').insert({ ...data, created_at: new Date().toISOString() }); logActivity(p ? 'UPDATE PROJECT' : 'CREATE PROJECT', data.name); toast('success', 'Saved'); Modal.close(); await loadAllData(); renderProjects(); }
+        catch (err) { toast('error', 'Failed', err.message); }
+      });
+    }
+  });
+}
+function deleteProject(id) {
+  const p = State.cache.projects.find(x => x.id === id); if (!p) return;
+  confirmDialog({ title: 'Delete project?', message: `Delete "${p.name}"?`, onConfirm: async () => { try { await State.supabase.from('business_projects').delete().eq('id', id); logActivity('DELETE PROJECT', p.name); toast('success', 'Deleted'); await loadAllData(); renderProjects(); } catch (err) { toast('error', 'Failed', err.message); } } });
+}
+
+/* ============ QUOTES ============ */
+function renderQuotes() {
+  const list = State.cache.quotes; const el = $('#quotesList');
+  if (!list.length) return el.innerHTML = '<div class="empty"><h4>No quotes</h4></div>';
+  el.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Client</th><th>Total</th><th>Status</th><th>Valid Until</th><th></th></tr></thead><tbody>${list.map(q => `<tr><td data-label="Client"><strong>${escapeHTML(q.client || '')}</strong></td><td data-label="Total">₹${escapeHTML(q.total || '0')}</td><td data-label="Status"><span class="pill pill-${escapeHTML(q.status || 'draft')}">${escapeHTML(q.status || 'draft')}</span></td><td data-label="Valid" class="td-muted">${formatDate(q.valid_until)}</td><td data-label="Actions"><div class="td-actions"><button class="btn btn-xs btn-ghost" data-edit-quote="${escapeHTML(q.id)}">Edit</button><button class="btn btn-xs btn-danger" data-del-quote="${escapeHTML(q.id)}">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`;
+  $$('[data-edit-quote]', el).forEach(b => b.addEventListener('click', () => editQuote(b.dataset.editQuote)));
+  $$('[data-del-quote]', el).forEach(b => b.addEventListener('click', () => deleteQuote(b.dataset.delQuote)));
+}
+$('#addQuoteBtn').addEventListener('click', () => editQuote(null));
+function editQuote(id) {
+  const q = id ? State.cache.quotes.find(x => x.id === id) : null;
+  Modal.open({
+    title: q ? 'Edit Quote' : 'Add Quote',
+    body: `<div class="field-row mb"><div class="field"><label>Client</label><input type="text" id="qtClient" value="${escapeHTML(q?.client || '')}"></div><div class="field"><label>Project</label><input type="text" id="qtProject" value="${escapeHTML(q?.project || '')}"></div></div><div class="field mb"><label>Items / Description</label><textarea id="qtItems" rows="4">${escapeHTML(q?.items || '')}</textarea></div><div class="field-row mb"><div class="field"><label>Subtotal</label><input type="text" id="qtSubtotal" value="${escapeHTML(q?.subtotal || '')}"></div><div class="field"><label>Discount</label><input type="text" id="qtDiscount" value="${escapeHTML(q?.discount || '')}"></div></div><div class="field-row mb"><div class="field"><label>Total</label><input type="text" id="qtTotal" value="${escapeHTML(q?.total || '')}"></div><div class="field"><label>Valid Until</label><input type="date" id="qtValid" value="${q?.valid_until || ''}"></div></div><div class="field mb"><label>Status</label><select id="qtStatus">${['draft', 'sent', 'accepted', 'rejected', 'expired'].map(s => `<option value="${s}"${q?.status === s ? ' selected' : ''}>${s}</option>`).join('')}</select></div><div class="field mb"><label>Notes</label><textarea id="qtNotes" rows="3">${escapeHTML(q?.notes || '')}</textarea></div>`,
+    foot: `<button class="btn btn-ghost" data-cancel>Cancel</button><button class="btn btn-primary" data-save>Save</button>`,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = { client: $('#qtClient').value.trim(), project: $('#qtProject').value.trim(), items: $('#qtItems').value.trim(), subtotal: $('#qtSubtotal').value.trim(), discount: $('#qtDiscount').value.trim(), total: $('#qtTotal').value.trim(), valid_until: $('#qtValid').value || null, status: $('#qtStatus').value, notes: $('#qtNotes').value.trim(), updated_at: new Date().toISOString() };
+        if (!data.client) return toast('warning', 'Client required');
+        try { if (q) await State.supabase.from('quotes').update(data).eq('id', q.id); else await State.supabase.from('quotes').insert({ ...data, created_at: new Date().toISOString() }); logActivity(q ? 'UPDATE QUOTE' : 'CREATE QUOTE', data.client); toast('success', 'Saved'); Modal.close(); await loadAllData(); renderQuotes(); }
+        catch (err) { toast('error', 'Failed', err.message); }
+      });
+    }
+  });
+}
+function deleteQuote(id) {
+  const q = State.cache.quotes.find(x => x.id === id); if (!q) return;
+  confirmDialog({ title: 'Delete quote?', message: `Delete quote for "${q.client}"?`, onConfirm: async () => { try { await State.supabase.from('quotes').delete().eq('id', id); logActivity('DELETE QUOTE', q.client); toast('success', 'Deleted'); await loadAllData(); renderQuotes(); } catch (err) { toast('error', 'Failed', err.message); } } });
+     }
+/* ============ MEDIA LIBRARY ============ */
+function renderMedia() {
+  const list = State.cache.media; const el = $('#mediaList');
+  if (!list.length) return el.innerHTML = '<div class="empty"><h4>No media</h4><p>Upload your first image.</p></div>';
+  el.innerHTML = `<div class="media-grid">${list.map(m => `<div class="media-item" data-media-id="${escapeHTML(m.id)}"><div class="media-thumb">${m.url ? `<img src="${escapeHTML(m.url)}" loading="lazy">` : ''}</div><div class="media-info"><div class="media-name">${escapeHTML(m.filename || 'image')}</div><div class="media-meta">${formatDate(m.created_at)}</div></div></div>`).join('')}</div>`;
+  $$('[data-media-id]', el).forEach(x => x.addEventListener('click', () => {
+    const m = State.cache.media.find(y => y.id === x.dataset.mediaId); if (!m) return;
+    Modal.open({
+      title: m.filename || 'Image',
+      body: `<div class="img-preview mb">${m.url ? `<img src="${escapeHTML(m.url)}">` : ''}</div><div class="info-row"><span class="k">Bucket</span><span class="v">${escapeHTML(m.bucket || '')}</span></div><div class="info-row"><span class="k">Path</span><span class="v" style="word-break:break-all">${escapeHTML(m.path || '')}</span></div><div class="info-row"><span class="k">URL</span><span class="v" style="word-break:break-all"><a href="${escapeHTML(m.url)}" target="_blank" style="color:var(--orange)">Open →</a></span></div>`,
+      foot: `<button class="btn btn-ghost" data-cancel>Close</button><button class="btn btn-danger" data-del>Delete</button>`,
+      onOpen: () => {
+        $('[data-cancel]').addEventListener('click', () => Modal.close());
+        $('[data-del]').addEventListener('click', () => {
+          confirmDialog({ title: 'Delete image?', message: `Delete "${m.filename}"?`, onConfirm: async () => {
+            try {
+              await State.supabase.storage.from(m.bucket).remove([m.path]);
+              await State.supabase.from('media').delete().eq('id', m.id);
+              logActivity('DELETE MEDIA', m.filename); toast('success', 'Deleted'); Modal.close(); await loadAllData(); renderMedia();
+            } catch (err) { toast('error', 'Failed', err.message); }
+          } });
+        });
+      }
+    });
+  }));
+}
+
+$('#mediaUpload').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files || []); if (!files.length) return;
+  for (const f of files) {
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(f.type)) { toast('warning', 'Invalid file', f.name); continue; }
+    if (f.size > 5 * 1024 * 1024) { toast('warning', 'Too large', f.name); continue; }
+    try {
+      const path = `media/${Date.now()}_${f.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: upErr } = await State.supabase.storage.from('media').upload(path, f, { upsert: false });
+      if (upErr) throw upErr;
+      const { data: pub } = State.supabase.storage.from('media').getPublicUrl(path);
+      await State.supabase.from('media').insert({ filename: f.name, path, url: pub.publicUrl, bucket: 'media', size: f.size, type: f.type, created_at: new Date().toISOString() });
+    } catch (err) { toast('error', 'Upload failed', err.message); }
+  }
+  toast('success', 'Upload complete'); await loadAllData(); renderMedia();
+});
+
+/* ============ ACTIVITY LOG ============ */
+function renderActivity() {
+  const list = State.cache.activity; const el = $('#activityList');
+  if (!list.length) return el.innerHTML = '<div class="empty"><h4>No activity yet</h4></div>';
+  el.innerHTML = `<div class="card">${list.map(a => `<div class="info-row"><div><div style="font-weight:500">${escapeHTML(a.action || '')}</div><div class="td-muted">${escapeHTML(a.user_email || '')} · ${escapeHTML(a.resource || '')}</div></div><div class="td-muted" style="font-size:0.72rem">${formatDateTime(a.created_at)}</div></div>`).join('')}</div>`;
+}
+
+/* ============ SETTINGS ============ */
+$('#saveSettingsBtn').addEventListener('click', async () => {
+  const data = {
+    site_name: $('#setSiteName').value.trim(),
+    founder_name: $('#setFounderName').value.trim(),
+    address: $('#setAddress').value.trim(),
+    whatsapp: $('#setWhatsapp').value.trim(),
+    email: $('#setEmail').value.trim(),
+    maintenance: $('#setMaintenance').checked,
+    updated_at: new Date().toISOString()
+  };
+  try {
+    if (State.supabase) {
+      const { data: ex } = await State.supabase.from('site_settings').select('id').eq('section', 'global').maybeSingle();
+      if (ex) await State.supabase.from('site_settings').update({ content: data }).eq('id', ex.id);
+      else await State.supabase.from('site_settings').insert({ section: 'global', content: data, status: 'published', created_at: new Date().toISOString() });
+    }
+    logActivity('UPDATE SETTINGS', 'global');
+    toast('success', 'Settings saved');
+  } catch (err) { toast('error', 'Save failed', err.message); }
+});
+
+$('#clearLocalDataBtn').addEventListener('click', () => {
+  confirmDialog({
+    title: 'Clear local data?',
+    message: 'This clears your locally saved Supabase URL and key. You will need to sign in again.',
+    onConfirm: async () => {
+      localStorage.removeItem('noctis_supa_url');
+      localStorage.removeItem('noctis_supa_key');
+      toast('info', 'Local data cleared');
+      if (State.supabase) { try { await State.supabase.auth.signOut(); } catch (e) {} }
+      setTimeout(() => location.reload(), 800);
+    }
+  });
+});
+
+/* ============ SECURITY ============ */
+$('#changePasswordBtn').addEventListener('click', () => {
+  Modal.open({
+    title: 'Change Password',
+    body: `<p class="muted" style="font-size:0.88rem;line-height:1.7;margin-bottom:1.25rem">We'll send a password reset link to your registered email address.</p><div class="field"><label>Email</label><input type="email" id="cpEmail" value="${escapeHTML(State.user?.email || '')}" readonly></div>`,
+    foot: `<button class="btn btn-ghost" data-cancel>Cancel</button><button class="btn btn-primary" data-send>Send Reset Link</button>`,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-send]').addEventListener('click', async () => {
+        try {
+          const { error } = await State.supabase.auth.resetPasswordForEmail(State.user.email);
+          if (error) throw error;
+          toast('success', 'Reset email sent', 'Check your inbox.');
+          Modal.close();
+        } catch (err) { toast('error', 'Failed', err.message); }
+      });
+    }
+  });
+});
+
+$('#logoutAllBtn').addEventListener('click', () => {
+  confirmDialog({
+    title: 'Sign out all sessions?',
+    message: 'You will be signed out from every device.',
+    confirmLabel: 'Sign Out All',
+    onConfirm: async () => {
+      try {
+        await State.supabase.auth.signOut({ scope: 'global' });
+        logActivity('LOGOUT ALL', 'global');
+        toast('success', 'Signed out everywhere');
+        setTimeout(() => location.reload(), 600);
+      } catch (err) { toast('error', 'Failed', err.message); }
+    }
+  });
+});
+
+/* ============ GLOBAL SEARCH ============ */
+$('#globalSearch').addEventListener('input', debounce((e) => {
+  const q = e.target.value.trim().toLowerCase();
+  if (!q) return;
+  const results = [];
+  State.cache.work.forEach(w => { if ((w.title || '').toLowerCase().includes(q)) results.push({ type: 'Work', label: w.title, page: 'work' }); });
+  State.cache.leads.forEach(l => { if ((l.name || '').toLowerCase().includes(q) || (l.business || '').toLowerCase().includes(q)) results.push({ type: 'Lead', label: l.name, page: 'leads' }); });
+  State.cache.reviews.forEach(r => { if ((r.name || '').toLowerCase().includes(q)) results.push({ type: 'Review', label: r.name, page: 'reviews' }); });
+  State.cache.services.forEach(s => { if ((s.name || '').toLowerCase().includes(q)) results.push({ type: 'Service', label: s.name, page: 'services' }); });
+  State.cache.projects.forEach(p => { if ((p.name || '').toLowerCase().includes(q)) results.push({ type: 'Project', label: p.name, page: 'projects' }); });
+
+  if (!results.length) return toast('info', 'No results', `Nothing matches "${q}"`);
+  Modal.open({
+    title: `Search: "${q}"`,
+    body: results.slice(0, 20).map(r => `<div class="info-row" data-nav="${r.page}" style="cursor:pointer"><div><span class="pill pill-draft" style="margin-right:0.6rem">${escapeHTML(r.type)}</span><strong>${escapeHTML(r.label || '')}</strong></div><span style="color:var(--orange);font-size:0.8rem">→</span></div>`).join(''),
+    onOpen: () => {
+      $$('[data-nav]').forEach(x => x.addEventListener('click', () => {
+        navigate(x.dataset.nav); Modal.close();
+      }));
+    }
+  });
+}, 350));
+
+/* ============ REFRESH ============ */
+$('#refreshBtn').addEventListener('click', async () => {
+  toast('info', 'Refreshing...');
+  await loadAllData();
+  navigate(State.currentPage);
+  toast('success', 'Refreshed');
+});
+
+/* ============ SESSION EXPIRY WATCHER ============ */
+if (State.supabase) {
+  State.supabase.auth.onAuthStateChange((event) => {
+    if (event === 'SIGNED_OUT') {
+      if (State.user) {
+        $('#sessionExpired').classList.add('open');
+      }
+    }
+  });
+}
+
+/* ============ KEYBOARD SHORTCUTS ============ */
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    $('#globalSearch').focus();
+  }
+});
+
+/* ============ CONSOLE BRANDING ============ */
+console.log('%c NOCTIS ADMIN ', 'background:#c96a32;color:#151311;font-size:14px;font-weight:bold;padding:6px 12px;border-radius:4px;');
+console.log('%c Admin panel loaded — Supabase backend ', 'color:#cdb895;font-size:11px;');
+console.log('%c Security: RLS enforces access. Frontend checks are UX only. ', 'color:#b7aa98;font-size:10px;');
