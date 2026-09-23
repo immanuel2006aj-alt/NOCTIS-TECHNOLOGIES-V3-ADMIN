@@ -3,7 +3,10 @@
    PART A of 2
    ============================================================ */
 
-const CONFIG = { SUPABASE_URL: '', SUPABASE_ANON_KEY: '' };
+const CONFIG = { 
+  SUPABASE_URL: 'https://fdvjfhdqdtfdkzjjupdp.supabase.co', 
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkdmpmaGRxZHRmZGt6amp1cGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzIyOTUsImV4cCI6MjEwNTc0ODI5NX0.T1B2QNiQCke1xoBfbIqGidwGoRaAtICW-ygbeP1DMdU' 
+};
 
 const State = {
   supabase: null, session: null, user: null, currentPage: 'dashboard',
