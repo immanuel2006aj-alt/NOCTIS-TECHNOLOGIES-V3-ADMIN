@@ -1250,8 +1250,8 @@ tbody tr:last-child td { border-bottom: none; }
   backdrop-filter: blur(2px);
 }
 
-.overlay.open { display: block; }
-
+.overlay.open { display: block; }.session-expired { display: none; }
+.session-expired.open { display: flex; position: fixed; inset: 0; background: var(--bg); z-index: 2500; align-items: center; justify-content: center; padding: 1.5rem; }
 </style>
 </head>
 <body class="booting">
