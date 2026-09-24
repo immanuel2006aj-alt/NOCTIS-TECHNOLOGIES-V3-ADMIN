@@ -1,0 +1,5776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Noctis Admin — Control Center</title>
+<meta name="theme-color" content="#151311">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+      /* ============================================================
+       TOKENS
+       ============================================================ */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #151311;
+      --surface: #201c18;
+      --surface-2: #2a231d;
+      --surface-3: #332a22;
+      --orange: #c96a32;
+      --orange-soft: #d97b42;
+      --red: #8b2929;
+      --red-soft: #a83a3a;
+      --sandal: #cdb895;
+      --cream: #f2e8d5;
+      --muted: #b7aa98;
+      --green: #4a7c4a;
+      --green-soft: #5a9a5a;
+      --yellow: #c9a032;
+      --blue: #4a6a8b;
+
+      --border-fine: rgba(205, 184, 149, 0.1);
+      --border-soft: rgba(205, 184, 149, 0.2);
+      --border-strong: rgba(205, 184, 149, 0.35);
+
+      --font-display: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+      --font-body: 'Inter', system-ui, sans-serif;
+
+      --radius-sm: 4px;
+      --radius: 6px;
+      --radius-lg: 10px;
+      --radius-pill: 999px;
+
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+      --ease-slow: cubic-bezier(0.16, 1, 0.3, 1);
+
+      --sidebar-w: 260px;
+      --topbar-h: 60px;
+    }
+
+    html, body {
+      background: var(--bg);
+      color: var(--cream);
+      font-family: var(--font-body);
+      font-size: 14px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    body.no-scroll { overflow: hidden; }
+
+    h1, h2, h3, h4 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: inherit;
+    }
+
+    input, textarea, select {
+      font-family: inherit;
+      font-size: 14px;
+      color: inherit;
+    }
+
+    img { max-width: 100%; display: block; }
+    ul { list-style: none; }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--border-strong); }
+
+    ::selection { background: var(--orange); color: #17130f; }
+
+    :focus-visible {
+      outline: 2px solid var(--orange);
+      outline-offset: 2px;
+      border-radius: 3px;
+    }
+
+    /* Utility */
+    .label {
+      font-size: 0.66rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--sandal);
+      font-weight: 500;
+    }
+    .muted { color: var(--muted); }
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .flex-center { display: flex; align-items: center; justify-content: center; }
+    .gap-sm { gap: 0.5rem; }
+    .gap { gap: 1rem; }
+    .gap-lg { gap: 1.5rem; }
+    .mt { margin-top: 1rem; }
+    .mt-lg { margin-top: 1.5rem; }
+    .mb { margin-bottom: 1rem; }
+    .mb-lg { margin-bottom: 1.5rem; }
+    .text-center { text-align: center; }
+    .w-full { width: 100%; }
+      /* ============================================================
+       BUTTONS
+       ============================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55em;
+      padding: 0.65em 1.2em;
+      border-radius: var(--radius-pill);
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      line-height: 1;
+      border: 1px solid transparent;
+      transition: all 0.3s var(--ease);
+      white-space: nowrap;
+      min-height: 38px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #17130f;
+      border-color: var(--orange);
+    }
+    .btn-primary:hover {
+      background: var(--orange-soft);
+      border-color: var(--orange-soft);
+      transform: translateY(-1px);
+    }
+
+    .btn-ghost {
+      border-color: var(--border-soft);
+      color: var(--cream);
+      background: transparent;
+    }
+    .btn-ghost:hover {
+      border-color: var(--sandal);
+      background: rgba(205, 184, 149, 0.06);
+    }
+
+    .btn-danger {
+      background: var(--red);
+      color: var(--cream);
+      border-color: var(--red);
+    }
+    .btn-danger:hover { background: var(--red-soft); }
+
+    .btn-success {
+      background: var(--green);
+      color: var(--cream);
+      border-color: var(--green);
+    }
+    .btn-success:hover { background: var(--green-soft); }
+
+    .btn-sm { padding: 0.45em 0.9em; font-size: 0.66rem; min-height: 30px; }
+    .btn-xs { padding: 0.35em 0.7em; font-size: 0.62rem; min-height: 26px; }
+    .btn-lg { padding: 0.9em 1.5em; font-size: 0.78rem; min-height: 44px; }
+    .btn-block { width: 100%; }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    /* ============================================================
+       FORM FIELDS
+       ============================================================ */
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    .field label {
+      font-size: 0.64rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--sandal);
+      font-weight: 500;
+    }
+
+    .field label .req { color: var(--red-soft); }
+
+    .field input[type="text"],
+    .field input[type="email"],
+    .field input[type="password"],
+    .field input[type="number"],
+    .field input[type="url"],
+    .field input[type="tel"],
+    .field input[type="date"],
+    .field input[type="file"],
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 0.7em 0.9em;
+      background: var(--bg);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius-sm);
+      color: var(--cream);
+      font-size: 0.9rem;
+      line-height: 1.5;
+      transition: border-color 0.25s var(--ease), background 0.25s var(--ease);
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cdb895' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.9em center;
+      padding-right: 2.4em;
+    }
+
+    .field textarea { resize: vertical; min-height: 90px; }
+
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--orange);
+      background: var(--surface-2);
+    }
+
+    .field input:disabled,
+    .field textarea:disabled,
+    .field select:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .field-hint { font-size: 0.7rem; color: var(--muted); line-height: 1.5; }
+
+    .field-error {
+      font-size: 0.72rem;
+      color: #e0a0a0;
+      display: none;
+    }
+    .field-error.show { display: block; }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 600px) {
+      .field-row { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ============================================================
+       CHECKBOX / SWITCH
+       ============================================================ */
+    .check {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      cursor: pointer;
+      font-size: 0.82rem;
+      user-select: none;
+    }
+
+    .check input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .check-box {
+      width: 36px;
+      height: 20px;
+      border-radius: 999px;
+      background: var(--surface-3);
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.3s var(--ease);
+    }
+
+    .check-box::after {
+      content: "";
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: all 0.3s var(--ease);
+    }
+
+    .check input:checked + .check-box {
+      background: var(--orange);
+    }
+    .check input:checked + .check-box::after {
+      left: 18px;
+      background: #17130f;
+    }
+
+    /* ============================================================
+       LAYOUT HELPERS
+       ============================================================ */
+    .editor-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 900px) {
+      .editor-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    .editor-actions {
+      display: flex;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      padding-top: 1rem;
+      margin-top: 1rem;
+      border-top: 1px solid var(--border-fine);
+    }
+
+    .divider {
+      height: 1px;
+      background: var(--border-fine);
+      margin: 1.25rem 0;
+    }
+
+    .note-box {
+      background: rgba(201, 106, 50, 0.08);
+      border-left: 3px solid var(--orange);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 1rem;
+    }
+    .note-box strong { color: var(--sandal); font-weight: 600; }
+
+    .warn-box {
+      background: rgba(139, 41, 41, 0.12);
+      border-left: 3px solid var(--red);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 1rem;
+      font-size: 0.78rem;
+      color: #e0b0b0;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+  }
+      /* ============================================================
+       LOGIN SCREEN
+       ============================================================ */
+    body.booting .login-screen { visibility: hidden; }
+    body.booting .session-expired { display: none !important; }
+
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      padding: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .login-screen::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 0%, rgba(201, 106, 50, 0.08), transparent 55%),
+        radial-gradient(ellipse at 50% 100%, rgba(139, 41, 41, 0.06), transparent 55%);
+    }
+
+    .login-card {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 420px;
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
+      animation: loginIn 0.7s var(--ease-slow) both;
+    }
+
+    @keyframes loginIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .login-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .login-mark {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--orange);
+      box-shadow: 0 0 0 4px rgba(201, 106, 50, 0.18);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(201, 106, 50, 0.18); }
+      50% { box-shadow: 0 0 0 8px rgba(201, 106, 50, 0.06); }
+    }
+
+    .login-brand-name {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: var(--cream);
+    }
+
+    .login-title {
+      font-family: var(--font-display);
+      font-size: 1.55rem;
+      font-weight: 600;
+      text-align: center;
+      margin-block: 1.5rem 0.4rem;
+    }
+
+    .login-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 2rem;
+    }
+
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .login-foot {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      margin-top: 1.5rem;
+    }
+
+    .login-foot button {
+      color: var(--orange);
+      font-weight: 500;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .login-error {
+      background: rgba(139, 41, 41, 0.15);
+      border: 1px solid rgba(139, 41, 41, 0.4);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      color: #e0a0a0;
+      font-size: 0.8rem;
+      display: none;
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+    .login-error.show { display: block; }
+
+    .login-info {
+      background: rgba(74, 106, 139, 0.1);
+      border: 1px solid rgba(74, 106, 139, 0.25);
+      border-radius: var(--radius);
+      padding: 0.75rem 1rem;
+      color: #a8c0d8;
+      font-size: 0.72rem;
+      line-height: 1.6;
+      margin-top: 1.5rem;
+      text-align: center;
+    }
+    .login-info strong { color: var(--sandal); }
+
+    /* ============================================================
+       APP SHELL
+       ============================================================ */
+    .app { display: none; }
+    .app.ready { display: block; }
+
+    /* ============================================================
+       SIDEBAR
+       ============================================================ */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: var(--sidebar-w);
+      background: var(--surface);
+      border-right: 1px solid var(--border-fine);
+      z-index: 900;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(-100%);
+      transition: transform 0.4s var(--ease-slow);
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .sidebar.open { transform: translateX(0); }
+
+    @media (min-width: 1024px) {
+      .sidebar { transform: translateX(0); }
+    }
+
+    .sidebar-head {
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid var(--border-fine);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.5rem;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      z-index: 2;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-display);
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      color: var(--cream);
+    }
+
+    .sidebar-brand .mark {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--orange);
+      flex-shrink: 0;
+    }
+
+    .sidebar-close {
+      display: flex;
+      color: var(--muted);
+      padding: 0.4rem;
+    }
+
+    @media (min-width: 1024px) {
+      .sidebar-close { display: none; }
+    }
+
+    .sidebar-nav {
+      padding: 0.75rem 0.6rem;
+      flex: 1;
+    }
+
+    .nav-group { margin-bottom: 1rem; }
+
+    .nav-group-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0.6rem 0.7rem 0.4rem;
+      font-weight: 500;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.7rem;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      color: var(--muted);
+      transition: all 0.2s var(--ease);
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      position: relative;
+    }
+
+    .nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+    .nav-item:hover {
+      background: var(--surface-2);
+      color: var(--cream);
+    }
+
+    .nav-item.active {
+      background: var(--surface-2);
+      color: var(--cream);
+    }
+
+    .nav-item.active::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 20%;
+      bottom: 20%;
+      width: 2px;
+      background: var(--orange);
+      border-radius: 2px;
+    }
+
+    .nav-badge {
+      margin-left: auto;
+      font-size: 0.62rem;
+      font-weight: 600;
+      background: var(--orange);
+      color: #17130f;
+      padding: 0.15em 0.5em;
+      border-radius: 999px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .sidebar-foot {
+      padding: 0.9rem;
+      border-top: 1px solid var(--border-fine);
+      position: sticky;
+      bottom: 0;
+      background: var(--surface);
+    }
+
+    .user-card {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      padding: 0.6rem 0.7rem;
+      border-radius: var(--radius);
+      background: var(--surface-2);
+      margin-bottom: 0.5rem;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--orange);
+      color: #17130f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.72rem;
+      flex-shrink: 0;
+    }
+
+    .user-info { min-width: 0; flex: 1; }
+
+    .user-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--cream);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .user-email {
+      font-size: 0.66rem;
+      color: var(--muted);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 8, 7, 0.6);
+      z-index: 850;
+      display: none;
+    }
+    .overlay.open { display: block; }
+      /* ============================================================
+       MAIN AREA
+       ============================================================ */
+    .main {
+      min-height: 100vh;
+      padding-left: 0;
+      transition: padding 0.4s var(--ease);
+    }
+
+    @media (min-width: 1024px) {
+      .main { padding-left: var(--sidebar-w); }
+    }
+
+    /* ============================================================
+       TOPBAR
+       ============================================================ */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 800;
+      height: var(--topbar-h);
+      background: rgba(21, 19, 17, 0.92);
+      -webkit-backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-fine);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0 1rem;
+    }
+
+    .menu-open {
+      display: flex;
+      color: var(--cream);
+      padding: 0.5rem;
+    }
+
+    @media (min-width: 1024px) {
+      .menu-open { display: none; }
+    }
+
+    .topbar-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+      flex-shrink: 0;
+    }
+
+    .topbar-title .sub {
+      display: block;
+      font-family: var(--font-body);
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-weight: 400;
+      letter-spacing: 0;
+      margin-top: 1px;
+    }
+
+    @media (max-width: 600px) {
+      .topbar-title .sub { display: none; }
+    }
+
+    .topbar-search {
+      flex: 1;
+      max-width: 340px;
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius-pill);
+      padding: 0.45rem 0.9rem;
+      transition: border-color 0.25s var(--ease);
+    }
+
+    .topbar-search:focus-within { border-color: var(--orange); }
+
+    .topbar-search svg {
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .topbar-search input {
+      background: none;
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 0.82rem;
+      color: var(--cream);
+    }
+
+    .topbar-search input::placeholder { color: var(--muted); }
+
+    @media (max-width: 700px) {
+      .topbar-search { display: none; }
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      margin-left: auto;
+    }
+
+    @media (min-width: 701px) {
+      .topbar-actions { margin-left: 0; }
+    }
+
+    /* ============================================================
+       CONTENT AREA
+       ============================================================ */
+    .content {
+      padding: 1.25rem 1rem 4rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    @media (min-width: 768px) {
+      .content { padding: 1.75rem 1.5rem 5rem; }
+    }
+
+    .page-head { margin-bottom: 1.5rem; }
+
+    .page-head h1 {
+      font-size: clamp(1.4rem, 1.2rem + 1vw, 1.9rem);
+      margin-bottom: 0.25rem;
+    }
+
+    .page-head p {
+      color: var(--muted);
+      font-size: 0.85rem;
+      max-width: 70ch;
+      line-height: 1.6;
+    }
+
+    .page { display: none; }
+    .page.active {
+      display: block;
+      animation: pageIn 0.4s var(--ease) both;
+    }
+
+    @keyframes pageIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* ============================================================
+       CARDS
+       ============================================================ */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .card-head h3 { font-size: 1rem; font-weight: 600; }
+    .card-head p { font-size: 0.78rem; color: var(--muted); }
+
+    /* ============================================================
+       KPI GRID
+       ============================================================ */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    @media (min-width: 700px) {
+      .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (min-width: 1100px) {
+      .kpi-grid { grid-template-columns: repeat(6, 1fr); }
+    }
+
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+      transition: border-color 0.3s var(--ease), transform 0.3s var(--ease);
+    }
+
+    .kpi:hover {
+      border-color: var(--border-soft);
+      transform: translateY(-2px);
+    }
+
+    .kpi-label {
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .kpi-value {
+      font-family: var(--font-display);
+      font-size: 1.7rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--cream);
+    }
+
+    .kpi-value.warn { color: var(--orange); }
+    .kpi-foot { font-size: 0.68rem; color: var(--muted); }
+
+    .dash-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
+
+    @media (min-width: 1000px) {
+      .dash-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    /* ============================================================
+       INFO ROWS
+       ============================================================ */
+    .info-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-fine);
+      font-size: 0.85rem;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+
+    .info-row .k {
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .info-row .v {
+      color: var(--cream);
+      font-weight: 500;
+      text-align: right;
+      word-break: break-word;
+      }
+      /* ============================================================
+       TABLES (responsive)
+       ============================================================ */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-fine);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      min-width: 640px;
+    }
+
+    thead { background: var(--surface-2); }
+
+    th {
+      text-align: left;
+      padding: 0.75rem 0.9rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--sandal);
+      font-weight: 500;
+      white-space: nowrap;
+      border-bottom: 1px solid var(--border-fine);
+    }
+
+    td {
+      padding: 0.8rem 0.9rem;
+      border-bottom: 1px solid var(--border-fine);
+      color: var(--cream);
+      vertical-align: middle;
+    }
+
+    tbody tr { transition: background 0.2s var(--ease); }
+    tbody tr:hover { background: rgba(205, 184, 149, 0.02); }
+    tbody tr:last-child td { border-bottom: none; }
+
+    .td-muted { color: var(--muted); font-size: 0.78rem; }
+
+    .td-actions {
+      display: flex;
+      gap: 0.35rem;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 767px) {
+      .table-wrap { border: none; overflow: visible; }
+      table, thead, tbody, th, td, tr { display: block; min-width: 0; }
+      thead { display: none; }
+
+      tbody tr {
+        background: var(--surface);
+        border: 1px solid var(--border-fine);
+        border-radius: var(--radius);
+        padding: 0.9rem;
+        margin-bottom: 0.75rem;
+      }
+
+      td {
+        padding: 0.4rem 0;
+        border: none;
+        display: flex;
+        justify-content: space-between;
+        gap: 1rem;
+        align-items: center;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-size: 0.62rem;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--muted);
+        font-weight: 500;
+        flex-shrink: 0;
+      }
+
+      .td-actions {
+        justify-content: flex-end;
+        padding-top: 0.6rem;
+        margin-top: 0.4rem;
+        border-top: 1px solid var(--border-fine);
+      }
+    }
+
+    /* ============================================================
+       STATUS PILLS
+       ============================================================ */
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35em;
+      font-size: 0.62rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.3em 0.75em;
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .pill::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+    }
+
+    .pill-published, .pill-approved, .pill-won, .pill-completed {
+      color: #8fd08f;
+      background: rgba(74, 124, 74, 0.14);
+      border-color: rgba(74, 124, 74, 0.3);
+    }
+
+    .pill-pending, .pill-new, .pill-draft, .pill-planning {
+      color: #e0c070;
+      background: rgba(201, 160, 50, 0.12);
+      border-color: rgba(201, 160, 50, 0.3);
+    }
+
+    .pill-rejected, .pill-lost, .pill-cancelled, .pill-expired {
+      color: #e08a8a;
+      background: rgba(139, 41, 41, 0.15);
+      border-color: rgba(139, 41, 41, 0.35);
+    }
+
+    .pill-hidden, .pill-archived, .pill-onhold {
+      color: var(--muted);
+      background: rgba(183, 170, 152, 0.1);
+      border-color: rgba(183, 170, 152, 0.25);
+    }
+
+    .pill-contacted, .pill-qualified, .pill-quotation, .pill-negotiation, .pill-followup {
+      color: #a0c0e0;
+      background: rgba(74, 106, 139, 0.14);
+      border-color: rgba(74, 106, 139, 0.3);
+    }
+      /* ============================================================
+       TABS
+       ============================================================ */
+    .tabs {
+      display: flex;
+      gap: 0.25rem;
+      overflow-x: auto;
+      border-bottom: 1px solid var(--border-fine);
+      margin-bottom: 1.25rem;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar { display: none; }
+
+    .tab {
+      padding: 0.7rem 1rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: all 0.25s var(--ease);
+      position: relative;
+      top: 1px;
+    }
+
+    .tab:hover { color: var(--cream); }
+
+    .tab.active {
+      color: var(--orange);
+      border-bottom-color: var(--orange);
+    }
+
+    .tab .count {
+      display: inline-block;
+      margin-left: 0.4em;
+      font-size: 0.62rem;
+      color: var(--muted);
+    }
+
+    /* ============================================================
+       TOOLBAR / SEARCH / FILTER
+       ============================================================ */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.6rem;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--surface);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius-pill);
+      padding: 0.5rem 0.9rem;
+      transition: border-color 0.25s var(--ease);
+    }
+
+    .search-box:focus-within { border-color: var(--orange); }
+
+    .search-box svg {
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      flex-shrink: 0;
+    }
+
+    .search-box input {
+      background: none;
+      border: none;
+      outline: none;
+      width: 100%;
+      font-size: 0.82rem;
+      color: var(--cream);
+    }
+
+    .filter-select {
+      background: var(--surface);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius-pill);
+      padding: 0.5rem 2.2rem 0.5rem 1rem;
+      font-size: 0.75rem;
+      color: var(--cream);
+      cursor: pointer;
+      -webkit-appearance: none;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23cdb895' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.8em center;
+    }
+
+    .filter-select:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    /* ============================================================
+       STARS
+       ============================================================ */
+    .stars {
+      display: inline-flex;
+      gap: 0.15rem;
+      color: var(--orange);
+      line-height: 1;
+    }
+
+    .stars svg { width: 0.95em; height: 0.95em; }
+    .stars .empty { color: var(--muted); opacity: 0.3; }
+
+    /* ============================================================
+       AVATAR
+       ============================================================ */
+    .avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--surface-3);
+      border: 1px solid var(--border-soft);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.75rem;
+      color: var(--sandal);
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .avatar.lg { width: 56px; height: 56px; font-size: 0.95rem; }
+
+    /* ============================================================
+       REVIEW SUMMARY
+       ============================================================ */
+    .review-summary {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      background: var(--surface-2);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .review-summary .score {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1;
+      color: var(--cream);
+    }
+
+    .review-summary .score small {
+      font-size: 0.5em;
+      color: var(--muted);
+      font-weight: 400;
+    }
+
+    .review-summary .meta {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    /* ============================================================
+       MODAL
+       ============================================================ */
+    .modal-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 1500;
+      background: rgba(10, 8, 7, 0.85);
+      -webkit-backdrop-filter: blur(8px);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 1rem;
+      overflow-y: auto;
+    }
+
+    .modal-bg.open { display: flex; }
+
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 640px;
+      margin: auto;
+      position: relative;
+      box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.9);
+      animation: modalIn 0.35s var(--ease-slow) both;
+      max-height: calc(100vh - 2rem);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal.wide { max-width: 900px; }
+    .modal.slim { max-width: 440px; }
+
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(16px) scale(0.98); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .modal-head {
+      padding: 1.1rem 1.25rem;
+      border-bottom: 1px solid var(--border-fine);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .modal-head h3 { font-size: 1.05rem; font-weight: 600; }
+    .modal-head p { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+    .modal-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border-fine);
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.25s var(--ease);
+      flex-shrink: 0;
+    }
+
+    .modal-close:hover {
+      color: var(--cream);
+      border-color: var(--border-soft);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 1.25rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-foot {
+      padding: 1rem 1.25rem;
+      border-top: 1px solid var(--border-fine);
+      display: flex;
+      gap: 0.6rem;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 520px) {
+      .modal-foot { flex-direction: column-reverse; }
+      .modal-foot .btn { width: 100%; }
+    }
+
+    /* ============================================================
+       TOASTS
+       ============================================================ */
+    .toast-wrap {
+      position: fixed;
+      top: 1rem;
+      right: 1rem;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      pointer-events: none;
+      max-width: calc(100vw - 2rem);
+    }
+
+    .toast {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-left: 3px solid var(--orange);
+      border-radius: var(--radius);
+      padding: 0.85rem 1.1rem;
+      font-size: 0.82rem;
+      color: var(--cream);
+      box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.6);
+      pointer-events: auto;
+      min-width: 240px;
+      max-width: 380px;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.7rem;
+      animation: toastIn 0.35s var(--ease-slow) both;
+      line-height: 1.5;
+    }
+
+    .toast.success { border-left-color: var(--green-soft); }
+    .toast.error   { border-left-color: var(--red-soft); }
+    .toast.warning { border-left-color: var(--yellow); }
+    .toast.info    { border-left-color: var(--blue); }
+
+    .toast svg {
+      width: 16px;
+      height: 16px;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .toast.success svg { color: #8fd08f; }
+    .toast.error svg   { color: #e08a8a; }
+    .toast.warning svg { color: #e0c070; }
+    .toast.info svg    { color: #a0c0e0; }
+
+    .toast-body { flex: 1; min-width: 0; }
+    .toast-title { font-weight: 600; margin-bottom: 2px; }
+    .toast-msg {
+      font-size: 0.75rem;
+      color: var(--muted);
+      word-wrap: break-word;
+    }
+
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .toast.out { animation: toastOut 0.3s var(--ease) forwards; }
+
+    @keyframes toastOut {
+      to { opacity: 0; transform: translateX(20px); }
+    }
+      /* ============================================================
+       LOADING / SPINNER
+       ============================================================ */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      gap: 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border-soft);
+      border-top-color: var(--orange);
+      animation: spin 0.8s linear infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ============================================================
+       EMPTY STATE
+       ============================================================ */
+    .empty {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: var(--muted);
+      border: 1px dashed var(--border-soft);
+      border-radius: var(--radius);
+    }
+
+    .empty h4 {
+      color: var(--cream);
+      font-size: 0.95rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .empty p {
+      font-size: 0.82rem;
+      max-width: 40ch;
+      margin: 0 auto 1rem;
+    }
+
+    /* ============================================================
+       MEDIA GRID
+       ============================================================ */
+    .media-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+      gap: 0.75rem;
+    }
+
+    .media-item {
+      background: var(--surface);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: border-color 0.25s var(--ease);
+    }
+
+    .media-item:hover { border-color: var(--border-soft); }
+
+    .media-thumb {
+      aspect-ratio: 1;
+      background: var(--surface-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .media-thumb img { width: 100%; height: 100%; object-fit: cover; }
+
+    .media-info { padding: 0.6rem 0.7rem; }
+
+    .media-name {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: var(--cream);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .media-meta { font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
+
+    /* ============================================================
+       IMAGE PREVIEW
+       ============================================================ */
+    .img-preview {
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      background: var(--surface-2);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .img-preview img { width: 100%; height: 100%; object-fit: cover; }
+
+    .img-preview .placeholder {
+      color: var(--muted);
+      font-size: 0.72rem;
+      text-align: center;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    /* ============================================================
+       PROJECT PREVIEW CARD
+       ============================================================ */
+    .project-preview {
+      background: var(--bg);
+      border: 1px solid var(--border-fine);
+      border-radius: var(--radius);
+      overflow: hidden;
+      max-width: 340px;
+    }
+
+    .project-preview .pv-img {
+      aspect-ratio: 16 / 10;
+      background: var(--surface-2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-preview .pv-img img { width: 100%; height: 100%; object-fit: cover; }
+    .project-preview .pv-body { padding: 1rem; }
+
+    .project-preview .pv-cat {
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 0.4rem;
+    }
+
+    .project-preview .pv-title {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      line-height: 1.2;
+    }
+
+    .project-preview .pv-desc {
+      font-size: 0.78rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .project-preview .pv-link {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--orange);
+    }
+
+    /* ============================================================
+       SESSION EXPIRED
+       ============================================================ */
+    .session-expired {
+      position: fixed;
+      inset: 0;
+      z-index: 2500;
+      background: var(--bg);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .session-expired.open { display: flex; }
+
+    .session-expired .box {
+      background: var(--surface);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      padding: 2.5rem 2rem;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.9);
+    }
+
+    .session-expired h3 { font-size: 1.3rem; margin-bottom: 0.75rem; }
+    .session-expired p { color: var(--muted); font-size: 0.88rem; margin-bottom: 1.75rem; line-height: 1.7; }
+
+    /* ============================================================
+       REDUCED MOTION
+       ============================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="booting">
+  <!-- ============================================================
+     LOGIN SCREEN
+     ============================================================ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-brand">
+      <span class="login-mark"></span>
+      <span class="login-brand-name">NOCTIS TECHNOLOGIES</span>
+    </div>
+    <h1 class="login-title">Admin Control Center</h1>
+    <p class="login-sub">Sign in to manage your website, content, leads and digital presence.</p>
+
+    <div class="login-error" id="loginError" role="alert"></div>
+
+    <form class="login-form" id="loginForm" novalidate>
+      <div class="field">
+        <label for="loginEmail">Email</label>
+        <input type="email" id="loginEmail" placeholder="sam@noctistechnologies.com" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="signInBtn">
+        Sign In <span aria-hidden="true">→</span>
+      </button>
+    </form>
+
+    <div class="login-foot">
+      <button type="button" id="forgotBtn">Forgot password?</button>
+    </div>
+
+    <div class="login-info">
+      <strong>Secured by Supabase</strong><br>
+      Session-based authentication with row-level security.
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SESSION EXPIRED OVERLAY
+     ============================================================ -->
+<div class="session-expired" id="sessionExpired">
+  <div class="box">
+    <h3>Session Expired</h3>
+    <p>Your admin session has expired. Please sign in again to continue.</p>
+    <button class="btn btn-primary btn-lg btn-block" id="signInAgainBtn">
+      Sign In Again <span aria-hidden="true">→</span>
+    </button>
+  </div>
+</div>
+<!-- ============================================================
+     APP SHELL — shown only after successful login
+     ============================================================ -->
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <div class="sidebar-brand">
+        <span class="mark"></span>
+        NOCTIS ADMIN
+      </div>
+      <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <div class="nav-group">
+        <div class="nav-group-label">Overview</div>
+
+        <button class="nav-item" data-page="dashboard" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="3" width="7" height="9"/>
+            <rect x="14" y="3" width="7" height="5"/>
+            <rect x="14" y="12" width="7" height="9"/>
+            <rect x="3" y="16" width="7" height="5"/>
+          </svg>
+          Dashboard
+        </button>
+
+        <button class="nav-item" data-page="analytics" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 3v18h18"/>
+            <path d="M7 15l4-4 3 3 5-6"/>
+          </svg>
+          Analytics
+        </button>
+
+        <button class="nav-item" data-page="activity" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7v5l3 3"/>
+          </svg>
+          Activity Log
+        </button>
+      </div>
+            <div class="nav-group">
+        <div class="nav-group-label">Website</div>
+
+        <button class="nav-item" data-page="website" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/>
+          </svg>
+          Website CMS
+        </button>
+
+        <button class="nav-item" data-page="services" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 2l9 5v10l-9 5-9-5V7z"/>
+          </svg>
+          Services
+        </button>
+
+        <button class="nav-item" data-page="work" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="6" width="18" height="14" rx="2"/>
+            <path d="M8 6V4h8v2"/>
+          </svg>
+          Work / Portfolio
+        </button>
+
+        <button class="nav-item" data-page="reviews" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/>
+          </svg>
+          Reviews
+          <span class="nav-badge" id="badgeReviews" style="display:none">0</span>
+        </button>
+
+        <button class="nav-item" data-page="pricing" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+          </svg>
+          Pricing
+        </button>
+
+        <button class="nav-item" data-page="faq" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/>
+          </svg>
+          FAQ
+        </button>
+            </div>
+                  <div class="nav-group">
+        <div class="nav-group-label">SEO</div>
+
+        <button class="nav-item" data-page="seo" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="11" cy="11" r="7"/>
+            <path d="M21 21l-4.5-4.5"/>
+          </svg>
+          SEO Manager
+        </button>
+
+        <button class="nav-item" data-page="locations" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+            <circle cx="12" cy="9" r="2.5"/>
+          </svg>
+          Locations
+        </button>
+
+        <button class="nav-item" data-page="programmatic" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="3" width="7" height="7"/>
+            <rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/>
+          </svg>
+          Programmatic SEO
+        </button>
+      </div>
+
+      <div class="nav-group">
+        <div class="nav-group-label">Business</div>
+
+        <button class="nav-item" data-page="leads" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          Leads CRM
+          <span class="nav-badge" id="badgeLeads" style="display:none">0</span>
+        </button>
+
+        <button class="nav-item" data-page="projects" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M3 7h18v13H3zM8 7V4h8v3"/>
+          </svg>
+          Projects
+        </button>
+
+        <button class="nav-item" data-page="quotes" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+            <path d="M14 2v6h6M9 13h6M9 17h6"/>
+          </svg>
+          Quotes
+        </button>
+
+        <button class="nav-item" data-page="media" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <rect x="3" y="3" width="18" height="18" rx="2"/>
+            <circle cx="8.5" cy="8.5" r="1.5"/>
+            <path d="M21 15l-5-5L5 21"/>
+          </svg>
+          Media Library
+        </button>
+      </div>
+            <div class="nav-group">
+        <div class="nav-group-label">System</div>
+
+        <button class="nav-item" data-page="settings" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          </svg>
+          Settings
+        </button>
+
+        <button class="nav-item" data-page="security" type="button">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Security
+        </button>
+      </div>
+
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="user-card">
+        <div class="user-avatar" id="userAvatar">S</div>
+        <div class="user-info">
+          <div class="user-name" id="userName">Sam Immanuel J</div>
+          <div class="user-email" id="userEmail">—</div>
+        </div>
+      </div>
+      <button class="nav-item" id="logoutBtn" type="button" style="color:var(--red-soft)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6">
+          <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+        </svg>
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <div class="overlay" id="sidebarOverlay"></div>
+
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-open" id="menuOpen" aria-label="Open menu">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 6h18M3 12h18M3 18h18"/>
+        </svg>
+      </button>
+      <div class="topbar-title">
+        <span id="pageTitle">Dashboard</span>
+        <span class="sub" id="pageSub">Manage your website, content, leads and digital presence.</span>
+      </div>
+      <div class="topbar-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="M21 21l-4.5-4.5"/>
+        </svg>
+        <input type="text" id="globalSearch" placeholder="Search..." autocomplete="off">
+      </div>
+      <div class="topbar-actions">
+        <a href="https://immanuel2006aj-alt.github.io/NOCTIS-TECHNOLOGIES-V3/" target="_blank" rel="noopener" class="btn btn-ghost btn-sm" title="View Website">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+            <path d="M15 3h6v6M10 14L21 3"/>
+          </svg>
+        </a>
+        <button class="btn btn-ghost btn-sm" id="refreshBtn" title="Refresh">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M23 4v6h-6M1 20v-6h6"/>
+            <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+            <!-- ============================================================
+           PAGE: DASHBOARD
+           ============================================================ -->
+      <section class="page active" data-page="dashboard">
+        <div class="page-head">
+          <h1>Noctis Control Center</h1>
+          <p>Manage your website, content, leads and digital presence.</p>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <span class="kpi-label">Total Leads</span>
+            <span class="kpi-value" id="kpiLeads">0</span>
+            <span class="kpi-foot" id="kpiLeadsFoot">—</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Pending Reviews</span>
+            <span class="kpi-value warn" id="kpiPendingReviews">0</span>
+            <span class="kpi-foot">Awaiting approval</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Approved Reviews</span>
+            <span class="kpi-value" id="kpiApprovedReviews">0</span>
+            <span class="kpi-foot" id="kpiAvgRating">—</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Total Work</span>
+            <span class="kpi-value" id="kpiWork">0</span>
+            <span class="kpi-foot" id="kpiWorkPublished">—</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">SEO Pages</span>
+            <span class="kpi-value" id="kpiSeo">0</span>
+            <span class="kpi-foot">Published</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Active Projects</span>
+            <span class="kpi-value" id="kpiProjects">0</span>
+            <span class="kpi-foot">In progress</span>
+          </div>
+        </div>
+
+        <div class="dash-grid">
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Recent Leads</h3>
+                <p>Latest project enquiries</p>
+              </div>
+              <button class="btn btn-ghost btn-sm" data-goto="leads" type="button">View all →</button>
+            </div>
+            <div id="dashLeads"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-head">
+              <div>
+                <h3>Recent Reviews</h3>
+                <p>Latest submissions</p>
+              </div>
+              <button class="btn btn-ghost btn-sm" data-goto="reviews" type="button">Manage →</button>
+            </div>
+            <div id="dashReviews"></div>
+          </div>
+        </div>
+
+        <div class="card mt-lg">
+          <div class="card-head">
+            <div>
+              <h3>Recent Activity</h3>
+              <p>Admin actions</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" data-goto="activity" type="button">View all →</button>
+          </div>
+          <div id="dashActivity"></div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: WEBSITE CMS
+           ============================================================ -->
+      <section class="page" data-page="website">
+        <div class="page-head">
+          <h1>Website CMS</h1>
+          <p>Edit public website content. Save as draft, preview, or publish.</p>
+        </div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-tab="hero" type="button">Hero</button>
+          <button class="tab" data-tab="about" type="button">About</button>
+          <button class="tab" data-tab="why" type="button">Why Noctis</button>
+          <button class="tab" data-tab="process" type="button">Process</button>
+          <button class="tab" data-tab="contactInfo" type="button">Contact</button>
+          <button class="tab" data-tab="footer" type="button">Footer</button>
+        </div>
+
+        <div id="tabContent">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading content...
+          </div>
+        </div>
+      </section>
+            <!-- ============================================================
+           PAGE: SERVICES
+           ============================================================ -->
+      <section class="page" data-page="services">
+        <div class="page-head flex-between">
+          <div>
+            <h1>Services</h1>
+            <p>Manage service offerings shown on the public website.</p>
+          </div>
+          <button class="btn btn-primary" id="addServiceBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Service
+          </button>
+        </div>
+        <div id="servicesList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading services...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: WORK / PORTFOLIO
+           ============================================================ -->
+      <section class="page" data-page="work">
+        <div class="page-head flex-between">
+          <div>
+            <h1>Work / Portfolio</h1>
+            <p>Projects displayed on the public website. Project images are clickable and link to the configured Project URL.</p>
+          </div>
+          <button class="btn btn-primary" id="addWorkBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Project
+          </button>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="M21 21l-4.5-4.5"/>
+            </svg>
+            <input type="text" id="workSearch" placeholder="Search projects..." autocomplete="off">
+          </div>
+          <select class="filter-select" id="workFilter">
+            <option value="">All status</option>
+            <option value="published">Published</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
+
+        <div id="workList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading projects...
+          </div>
+        </div>
+      </section>
+            <!-- ============================================================
+           PAGE: REVIEWS
+           ============================================================ -->
+      <section class="page" data-page="reviews">
+        <div class="page-head">
+          <h1>Reviews</h1>
+          <p>Moderate public reviews. Only approved reviews appear on the website.</p>
+        </div>
+
+        <div class="review-summary" id="reviewSummary"></div>
+
+        <div class="tabs" role="tablist">
+          <button class="tab active" data-rtab="pending" type="button">
+            Pending <span class="count" id="rCountPending">0</span>
+          </button>
+          <button class="tab" data-rtab="published" type="button">
+            Published <span class="count" id="rCountApproved">0</span>
+          </button>
+          <button class="tab" data-rtab="rejected" type="button">
+            Rejected <span class="count" id="rCountRejected">0</span>
+          </button>
+          <button class="tab" data-rtab="hidden" type="button">
+            Hidden <span class="count" id="rCountHidden">0</span>
+          </button>
+        </div>
+
+        <div id="reviewsList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading reviews...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: PRICING
+           ============================================================ -->
+      <section class="page" data-page="pricing">
+        <div class="page-head flex-between">
+          <div>
+            <h1>Pricing</h1>
+            <p>Manage pricing packages shown on the public website.</p>
+          </div>
+          <button class="btn btn-primary" id="addPricingBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Package
+          </button>
+        </div>
+        <div id="pricingList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading packages...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: FAQ
+           ============================================================ -->
+      <section class="page" data-page="faq">
+        <div class="page-head flex-between">
+          <div>
+            <h1>FAQ</h1>
+            <p>Manage frequently asked questions.</p>
+          </div>
+          <button class="btn btn-primary" id="addFaqBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add FAQ
+          </button>
+        </div>
+        <div id="faqList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading FAQs...
+          </div>
+        </div>
+      </section>
+            <!-- ============================================================
+           PAGE: SEO MANAGER
+           ============================================================ -->
+      <section class="page" data-page="seo">
+        <div class="page-head">
+          <h1>SEO Manager</h1>
+          <p>Global and page-level SEO settings.</p>
+        </div>
+
+        <div class="card mb-lg">
+          <div class="card-head">
+            <div>
+              <h3>Global SEO</h3>
+              <p>Applied site-wide</p>
+            </div>
+          </div>
+          <div class="editor-grid">
+            <div class="field">
+              <label>Site Title</label>
+              <input type="text" id="seoTitle" placeholder="Noctis Technologies">
+            </div>
+            <div class="field">
+              <label>Canonical URL</label>
+              <input type="url" id="seoCanonical" placeholder="https://noctistechnologies.com">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Meta Description</label>
+              <textarea id="seoDescription" placeholder="Founder-led digital technology studio..."></textarea>
+            </div>
+            <div class="field">
+              <label>OG Title</label>
+              <input type="text" id="seoOgTitle">
+            </div>
+            <div class="field">
+              <label>OG Image URL</label>
+              <input type="url" id="seoOgImage">
+            </div>
+            <div class="field">
+              <label>Robots</label>
+              <select id="seoRobots">
+                <option value="index,follow">index, follow</option>
+                <option value="noindex,follow">noindex, follow</option>
+                <option value="index,nofollow">index, nofollow</option>
+                <option value="noindex,nofollow">noindex, nofollow</option>
+              </select>
+            </div>
+          </div>
+          <div class="editor-actions">
+            <button class="btn btn-ghost" data-save-seo="draft" type="button">Save Draft</button>
+            <button class="btn btn-primary" data-save-seo="published" type="button">Publish</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Page-Level SEO</h3>
+              <p>Individual page overrides</p>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="addSeoPageBtn" type="button">
+              + Add Page
+            </button>
+          </div>
+          <div id="seoPagesList">
+            <div class="loading">
+              <span class="spinner"></span>
+              Loading SEO pages...
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: LOCATIONS
+           ============================================================ -->
+      <section class="page" data-page="locations">
+        <div class="page-head flex-between">
+          <div>
+            <h1>Locations</h1>
+            <p>Manage service locations for local SEO.</p>
+          </div>
+          <button class="btn btn-primary" id="addLocationBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Location
+          </button>
+        </div>
+        <div id="locationsList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading locations...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: PROGRAMMATIC SEO
+           ============================================================ -->
+      <section class="page" data-page="programmatic">
+        <div class="page-head">
+          <h1>Programmatic SEO</h1>
+          <p>Generate candidate pages from service × location × business type × intent. All pages require manual approval before publishing.</p>
+        </div>
+
+        <div class="card mb-lg">
+          <div class="card-head">
+            <div>
+              <h3>Generate Candidate</h3>
+              <p>Select inputs to build page candidates</p>
+            </div>
+          </div>
+          <div class="editor-grid">
+            <div class="field">
+              <label>Service</label>
+              <input type="text" id="pgService" placeholder="Web Development">
+            </div>
+            <div class="field">
+              <label>Location</label>
+              <input type="text" id="pgLocation" placeholder="Tirupur">
+            </div>
+            <div class="field">
+              <label>Business Type</label>
+              <input type="text" id="pgBusiness" placeholder="Textile">
+            </div>
+            <div class="field">
+              <label>Search Intent</label>
+              <input type="text" id="pgIntent" placeholder="Best web developer">
+            </div>
+          </div>
+          <div class="editor-actions">
+            <button class="btn btn-ghost" id="pgGenerateBtn" type="button">Generate Candidate</button>
+          </div>
+          <div id="pgCandidates" class="mt"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Pending Approval</h3>
+              <p>Review before publishing</p>
+            </div>
+          </div>
+          <div id="pgPending"></div>
+        </div>
+      </section>
+            <!-- ============================================================
+           PAGE: LEADS CRM
+           ============================================================ -->
+      <section class="page" data-page="leads">
+        <div class="page-head">
+          <h1>Leads CRM</h1>
+          <p>Project enquiries and business leads. Private — only authenticated admins can access.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="M21 21l-4.5-4.5"/>
+            </svg>
+            <input type="text" id="leadsSearch" placeholder="Search leads..." autocomplete="off">
+          </div>
+          <select class="filter-select" id="leadsFilter">
+            <option value="">All status</option>
+            <option value="new">New</option>
+            <option value="contacted">Contacted</option>
+            <option value="qualified">Qualified</option>
+            <option value="quotation">Quotation</option>
+            <option value="negotiation">Negotiation</option>
+            <option value="won">Won</option>
+            <option value="lost">Lost</option>
+            <option value="follow-up">Follow-up</option>
+          </select>
+          <button class="btn btn-primary btn-sm" id="addLeadBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Lead
+          </button>
+        </div>
+
+        <div id="leadsList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading leads...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: PROJECTS (internal tracker)
+           ============================================================ -->
+      <section class="page" data-page="projects">
+        <div class="page-head flex-between">
+          <div>
+            <h1>Projects</h1>
+            <p>Track active client projects.</p>
+          </div>
+          <button class="btn btn-primary" id="addProjectBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Project
+          </button>
+        </div>
+        <div id="projectsList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading projects...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: QUOTES
+           ============================================================ -->
+      <section class="page" data-page="quotes">
+        <div class="page-head flex-between">
+          <div>
+            <h1>Quotes</h1>
+            <p>Client quotations.</p>
+          </div>
+          <button class="btn btn-primary" id="addQuoteBtn" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Add Quote
+          </button>
+        </div>
+        <div id="quotesList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading quotes...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: MEDIA LIBRARY
+           ============================================================ -->
+      <section class="page" data-page="media">
+        <div class="page-head flex-between">
+          <div>
+            <h1>Media Library</h1>
+            <p>Upload and manage images.</p>
+          </div>
+          <label class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+            </svg>
+            Upload
+            <input type="file" id="mediaUpload" accept="image/png,image/jpeg,image/webp" multiple hidden>
+          </label>
+        </div>
+        <div id="mediaList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading media...
+          </div>
+        </div>
+      </section>
+            <!-- ============================================================
+           PAGE: ANALYTICS
+           ============================================================ -->
+      <section class="page" data-page="analytics">
+        <div class="page-head">
+          <h1>Analytics</h1>
+          <p>Lightweight activity metrics.</p>
+        </div>
+
+        <div class="kpi-grid">
+          <div class="kpi">
+            <span class="kpi-label">Visits (30d)</span>
+            <span class="kpi-value" id="anaVisits">—</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Project Clicks</span>
+            <span class="kpi-value" id="anaClicks">—</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">WhatsApp Clicks</span>
+            <span class="kpi-value" id="anaWhatsapp">—</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Enquiries</span>
+            <span class="kpi-value" id="anaEnquiries">—</span>
+          </div>
+          <div class="kpi">
+            <span class="kpi-label">Reviews</span>
+            <span class="kpi-value" id="anaReviews">—</span>
+          </div>
+        </div>
+
+        <div class="note-box">
+          <strong>Note:</strong> Analytics events require the public website to send tracking data.
+          Connect your analytics provider or extend the Supabase schema with an <code>analytics_events</code> table.
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: ACTIVITY LOG
+           ============================================================ -->
+      <section class="page" data-page="activity">
+        <div class="page-head">
+          <h1>Activity Log</h1>
+          <p>Admin actions and system events.</p>
+        </div>
+        <div id="activityList">
+          <div class="loading">
+            <span class="spinner"></span>
+            Loading activity...
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: SETTINGS
+           ============================================================ -->
+      <section class="page" data-page="settings">
+        <div class="page-head">
+          <h1>Settings</h1>
+          <p>Global site settings.</p>
+        </div>
+
+        <div class="card mb-lg">
+          <div class="card-head">
+            <div>
+              <h3>Business Information</h3>
+            </div>
+          </div>
+          <div class="editor-grid">
+            <div class="field">
+              <label>Website Name</label>
+              <input type="text" id="setSiteName" value="Noctis Technologies">
+            </div>
+            <div class="field">
+              <label>Founder Name</label>
+              <input type="text" id="setFounderName" value="Sam Immanuel J">
+            </div>
+            <div class="field" style="grid-column:1/-1">
+              <label>Address</label>
+              <input type="text" id="setAddress" value="Mangalam, Tirupur — 641663, Tamil Nadu, India">
+            </div>
+            <div class="field">
+              <label>WhatsApp</label>
+              <input type="tel" id="setWhatsapp" value="+91 98765 43210">
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input type="email" id="setEmail" value="hello@noctistechnologies.com">
+            </div>
+          </div>
+          <div class="editor-actions">
+            <button class="btn btn-primary" id="saveSettingsBtn" type="button">Save Settings</button>
+          </div>
+        </div>
+
+        <div class="card mb-lg">
+          <div class="card-head">
+            <div>
+              <h3>System</h3>
+            </div>
+          </div>
+          <div class="field mb">
+            <label class="check">
+              <input type="checkbox" id="setMaintenance">
+              <span class="check-box"></span>
+              Maintenance mode
+            </label>
+            <span class="field-hint">When enabled, the public website displays a maintenance message.</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Supabase Connection</h3>
+              <p>Read-only — configured at deployment</p>
+            </div>
+          </div>
+          <div class="field mb">
+            <label>URL</label>
+            <input type="url" id="setSupaUrl" readonly value="https://fdvjfhdqdtfdkzjjupdp.supabase.co">
+          </div>
+          <div class="field mb">
+            <label>Anon Key</label>
+            <input type="text" id="setSupaKey" readonly>
+          </div>
+          <div class="warn-box mt">
+            <strong>Security:</strong> Never place your Supabase <code>service_role</code> key in this file.
+            Only the public <code>anon</code> key belongs in the browser.
+          </div>
+        </div>
+      </section>
+
+      <!-- ============================================================
+           PAGE: SECURITY CENTER
+           ============================================================ -->
+      <section class="page" data-page="security">
+        <div class="page-head">
+          <h1>Security Center</h1>
+          <p>Session and account security.</p>
+        </div>
+
+        <div class="card mb-lg">
+          <div class="card-head">
+            <div>
+              <h3>Current Session</h3>
+            </div>
+          </div>
+          <div class="info-row">
+            <span class="k">User</span>
+            <span class="v" id="secUser">—</span>
+          </div>
+          <div class="info-row">
+            <span class="k">Email</span>
+            <span class="v" id="secEmail">—</span>
+          </div>
+          <div class="info-row">
+            <span class="k">Session Started</span>
+            <span class="v" id="secStarted">—</span>
+          </div>
+          <div class="info-row">
+            <span class="k">Last Sign-in</span>
+            <span class="v" id="secLastSignin">—</span>
+          </div>
+          <div class="info-row">
+            <span class="k">MFA</span>
+            <span class="v" id="secMfa">Not enabled</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-head">
+            <div>
+              <h3>Actions</h3>
+            </div>
+          </div>
+          <div class="flex gap" style="flex-wrap:wrap">
+            <button class="btn btn-ghost" id="changePasswordBtn" type="button">Change Password</button>
+            <button class="btn btn-ghost" id="logoutAllBtn" type="button">Sign Out All Sessions</button>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+  <!-- ============================================================
+     MODAL (reusable)
+     ============================================================ -->
+<div class="modal-bg" id="modalBg" role="dialog" aria-modal="true">
+  <div class="modal" id="modal" role="document">
+    <div class="modal-head">
+      <div>
+        <h3 id="modalTitle">Modal</h3>
+        <p id="modalSub"></p>
+      </div>
+      <button class="modal-close" id="modalClose" aria-label="Close" type="button">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-foot" id="modalFoot"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOAST NOTIFICATIONS
+     ============================================================ -->
+<div class="toast-wrap" id="toastWrap" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   NOCTIS ADMIN — JAVASCRIPT
+   Connected to Supabase project:
+   https://fdvjfhdqdtfdkzjjupdp.supabase.co
+   ============================================================ */
+/* ============================================================
+   CONFIG — hard-coded Supabase credentials
+   ============================================================ */
+const CONFIG = {
+  SUPABASE_URL: 'https://fdvjfhdqdtfdkzjjupdp.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkdmpmaGRxZHRmZGt6amp1cGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzIyOTUsImV4cCI6MjEwNTc0ODI5NX0.T1B2QNiQCke1xoBfbIqGidwGoRaAtICW-ygbeP1DMdU'
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const State = {
+  supabase: null,
+  session: null,
+  user: null,
+  currentPage: 'dashboard',
+  cache: {
+    leads: [],
+    reviews: [],
+    work: [],
+    services: [],
+    pricing: [],
+    faq: [],
+    locations: [],
+    seoPages: [],
+    projects: [],
+    quotes: [],
+    media: [],
+    activity: []
+  },
+  ui: { reviewTab: 'pending', websiteTab: 'hero' }
+};
+
+/* ============================================================
+   DOM HELPERS
+   ============================================================ */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+function escapeHTML(str) {
+  const d = document.createElement('div');
+  d.textContent = String(str ?? '');
+  return d.innerHTML;
+}
+
+function formatDate(iso, o = { year: 'numeric', month: 'short', day: 'numeric' }) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-IN', o); }
+  catch { return '—'; }
+}
+
+function formatDateTime(iso) {
+  if (!iso) return '—';
+  try {
+    return new Date(iso).toLocaleString('en-IN', {
+      year: 'numeric', month: 'short', day: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  } catch { return '—'; }
+}
+
+function debounce(fn, wait = 300) {
+  let t;
+  return function (...args) {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
+}
+
+function starsHTML(rating, total = 5) {
+  let out = '';
+  for (let i = 1; i <= total; i++) {
+    out += `<svg viewBox="0 0 24 24" fill="${i <= rating ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.5" class="${i <= rating ? '' : 'empty'}"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87L18.18 22 12 18.27 5.82 22 7 14.14l-5-4.87 6.91-1.01L12 2z"/></svg>`;
+  }
+  return out;
+}
+
+function digitsOnly(s) {
+  return String(s || '').replace(/\D/g, '');
+}
+/* ============================================================
+   TOAST
+   ============================================================ */
+function toast(type, title, msg) {
+  const icons = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>',
+    error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>',
+    warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>',
+    info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>'
+  };
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `
+    ${icons[type] || icons.info}
+    <div class="toast-body">
+      <div class="toast-title">${escapeHTML(title)}</div>
+      ${msg ? `<div class="toast-msg">${escapeHTML(msg)}</div>` : ''}
+    </div>
+  `;
+  const wrap = $('#toastWrap');
+  if (wrap) wrap.appendChild(el);
+  setTimeout(() => {
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 350);
+  }, 3600);
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+const Modal = {
+  open({ title, sub = '', body, foot, wide = false, slim = false, onOpen }) {
+    const mt = $('#modalTitle');
+    const ms = $('#modalSub');
+    const mb = $('#modalBody');
+    const mf = $('#modalFoot');
+    const m = $('#modal');
+    const mbg = $('#modalBg');
+
+    if (mt) mt.textContent = title || '';
+    if (ms) ms.textContent = sub || '';
+    if (mb) mb.innerHTML = body || '';
+    if (mf) mf.innerHTML = foot || '';
+    if (m) {
+      m.classList.toggle('wide', !!wide);
+      m.classList.toggle('slim', !!slim);
+    }
+    if (mbg) mbg.classList.add('open');
+    document.body.classList.add('no-scroll');
+    if (onOpen) onOpen();
+  },
+  close() {
+    const mbg = $('#modalBg');
+    if (mbg) mbg.classList.remove('open');
+    document.body.classList.remove('no-scroll');
+  }
+};
+
+(function () {
+  const mc = $('#modalClose');
+  const mbg = $('#modalBg');
+  if (mc) mc.addEventListener('click', () => Modal.close());
+  if (mbg) mbg.addEventListener('click', (e) => {
+    if (e.target.id === 'modalBg') Modal.close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') Modal.close();
+  });
+})();
+
+/* ============================================================
+   CONFIRM DIALOG
+   ============================================================ */
+function confirmDialog({ title, message, confirmLabel = 'Delete', danger = true, onConfirm }) {
+  Modal.open({
+    title,
+    slim: true,
+    body: `<p style="color:var(--muted);font-size:0.9rem;line-height:1.7">${escapeHTML(message)}</p>`,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-confirm type="button">${escapeHTML(confirmLabel)}</button>
+    `,
+    onOpen: () => {
+      const cancelBtn = $('[data-cancel]', $('#modalFoot'));
+      const confirmBtn = $('[data-confirm]', $('#modalFoot'));
+      if (cancelBtn) cancelBtn.addEventListener('click', () => Modal.close());
+      if (confirmBtn) confirmBtn.addEventListener('click', async () => {
+        confirmBtn.disabled = true;
+        confirmBtn.textContent = 'Working...';
+        try {
+          await onConfirm();
+          Modal.close();
+        } catch (err) {
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = confirmLabel;
+          toast('error', 'Action failed', err.message || 'Please try again.');
+        }
+      });
+    }
+  });
+}
+  /* ============================================================
+   SUPABASE INITIALIZATION
+   ============================================================ */
+function initSupabase() {
+  if (!window.supabase || !window.supabase.createClient) {
+    return { ok: false, reason: 'missing_library' };
+  }
+  try {
+    State.supabase = window.supabase.createClient(
+      CONFIG.SUPABASE_URL,
+      CONFIG.SUPABASE_ANON_KEY,
+      {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      }
+    );
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: 'init_failed', error: err };
+  }
+}
+
+/* ============================================================
+   LOGIN SCREEN CONTROLS
+   ============================================================ */
+function showLogin() {
+  const el = $('#loginScreen');
+  if (el && el.style.display !== 'flex') {
+    el.style.display = 'flex';
+  }
+  const app = $('#app');
+  if (app) app.classList.remove('ready');
+  const se = $('#sessionExpired');
+  if (se && se.classList.contains('open')) se.classList.remove('open');
+}
+
+function hideLogin() {
+  const el = $('#loginScreen');
+  if (el) el.style.display = 'none';
+  const app = $('#app');
+  if (app) app.classList.add('ready');
+}
+
+function showLoginError(msg) {
+  const el = $('#loginError');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.add('show');
+}
+
+function hideLoginError() {
+  const el = $('#loginError');
+  if (el) el.classList.remove('show');
+}
+
+/* ============================================================
+   LOGIN FORM SUBMIT
+   ============================================================ */
+(function () {
+  const form = $('#loginForm');
+  if (!form) return;
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideLoginError();
+
+    const email = $('#loginEmail').value.trim();
+    const password = $('#loginPassword').value;
+
+    if (!email || !password) {
+      return showLoginError('Please enter your email and password.');
+    }
+
+    const init = initSupabase();
+    if (!init.ok) {
+      return showLoginError('Could not initialize Supabase. Check your internet connection.');
+    }
+
+    const btn = $('#signInBtn');
+    btn.disabled = true;
+    const orig = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px"></span> Signing in...';
+
+    try {
+      const { error } = await State.supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      // onAuthStateChange handles the rest
+    } catch (err) {
+      showLoginError(err.message || 'Sign in failed. Please check your credentials.');
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  });
+})();
+
+/* ============================================================
+   FORGOT PASSWORD
+   ============================================================ */
+(function () {
+  const btn = $('#forgotBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    const email = $('#loginEmail').value.trim();
+    if (!email) {
+      return showLoginError('Enter your email address first, then click "Forgot password?".');
+    }
+    initSupabase();
+    try {
+      const { error } = await State.supabase.auth.resetPasswordForEmail(email);
+      if (error) throw error;
+      toast('success', 'Reset link sent', 'Check your email inbox.');
+    } catch (err) {
+      showLoginError(err.message || 'Could not send reset email.');
+    }
+  });
+})();
+
+/* ============================================================
+   SIGN IN AGAIN (session expired screen)
+   ============================================================ */
+(function () {
+  const btn = $('#signInAgainBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    const se = $('#sessionExpired');
+    if (se) se.classList.remove('open');
+    showLogin();
+  });
+})();
+  /* ============================================================
+   AUTH SESSION HANDLER
+   ============================================================ */
+let currentUser = null;
+let bootComplete = false;
+
+async function handleSession(session) {
+  if (!session) {
+    currentUser = null;
+    State.session = null;
+    State.user = null;
+    showLogin();
+    return;
+  }
+
+  State.session = session;
+  State.user = session.user;
+  currentUser = session.user;
+
+  /* Verify admin authorization via profiles table (RLS enforced) */
+  let authorized = true;
+  try {
+    const { data, error } = await State.supabase
+      .from('profiles')
+      .select('id, full_name, role')
+      .eq('id', session.user.id)
+      .maybeSingle();
+
+    if (error) {
+      console.warn('Profiles lookup:', error.message);
+    } else if (data && data.role && data.role !== 'admin') {
+      authorized = false;
+    }
+  } catch (err) {
+    console.warn('Authorization check failed:', err);
+  }
+
+  if (!authorized) {
+    toast('error', 'Access denied', 'This account is not an authorized admin.');
+    await State.supabase.auth.signOut();
+    return;
+  }
+
+  /* Update user UI */
+  const email = session.user.email || '';
+  const name = (session.user.user_metadata && session.user.user_metadata.full_name)
+    || email.split('@')[0] || 'Admin';
+
+  const un = $('#userName');
+  const ue = $('#userEmail');
+  const ua = $('#userAvatar');
+  if (un) un.textContent = name;
+  if (ue) ue.textContent = email;
+  if (ua) ua.textContent = (name[0] || 'S').toUpperCase();
+
+  const su = $('#secUser');
+  const se = $('#secEmail');
+  const ss = $('#secStarted');
+  const sl = $('#secLastSignin');
+  if (su) su.textContent = name;
+  if (se) se.textContent = email;
+  if (ss) ss.textContent = formatDateTime(new Date().toISOString());
+  if (sl) sl.textContent = formatDateTime(session.user.last_sign_in_at || new Date().toISOString());
+
+  const sk = $('#setSupaKey');
+  if (sk) sk.value = CONFIG.SUPABASE_ANON_KEY;
+
+  hideLogin();
+  await loadAllData();
+  navigate(State.currentPage);
+}
+
+/* ============================================================
+   BOOTSTRAP — start auth listener
+   ============================================================ */
+(function bootstrap() {
+  const init = initSupabase();
+  if (!init.ok) {
+    document.body.classList.remove('booting');
+    showLogin();
+    showLoginError('Failed to initialize Supabase. Please check your connection.');
+    return;
+  }
+
+  State.supabase.auth.getSession()
+    .then(({ data }) => {
+      bootComplete = true;
+      document.body.classList.remove('booting');
+      handleSession(data.session);
+    })
+    .catch(() => {
+      bootComplete = true;
+      document.body.classList.remove('booting');
+      showLogin();
+    });
+
+  State.supabase.auth.onAuthStateChange((event, session) => {
+    if (!bootComplete) return;
+    if (event === 'SIGNED_OUT') {
+      showLogin();
+    } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+      handleSession(session);
+    }
+  });
+})();
+
+/* ============================================================
+   LOGOUT
+   ============================================================ */
+(function () {
+  const btn = $('#logoutBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    if (!State.supabase) return showLogin();
+    try {
+      await State.supabase.auth.signOut();
+    } catch (err) {
+      console.error(err);
+    }
+    showLogin();
+  });
+})();
+
+/* ============================================================
+   SIDEBAR TOGGLE
+   ============================================================ */
+(function () {
+  const sidebar = $('#sidebar');
+  const overlay = $('#sidebarOverlay');
+  const menuOpen = $('#menuOpen');
+  const sidebarClose = $('#sidebarClose');
+  if (!sidebar || !overlay) return;
+
+  function openSidebar() {
+    sidebar.classList.add('open');
+    overlay.classList.add('open');
+  }
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+  }
+
+  if (menuOpen) menuOpen.addEventListener('click', openSidebar);
+  if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+  overlay.addEventListener('click', closeSidebar);
+})();
+  /* ============================================================
+   NAVIGATION
+   ============================================================ */
+const PAGES = {
+  dashboard:    { title: 'Dashboard',    sub: 'Manage your website, content, leads and digital presence.' },
+  analytics:    { title: 'Analytics',    sub: 'Activity metrics.' },
+  activity:     { title: 'Activity Log', sub: 'Admin actions.' },
+  website:      { title: 'Website CMS',  sub: 'Edit public website content.' },
+  services:     { title: 'Services',     sub: 'Manage service offerings.' },
+  work:         { title: 'Work / Portfolio', sub: 'Projects displayed on the public website.' },
+  reviews:      { title: 'Reviews',      sub: 'Moderate public reviews.' },
+  pricing:      { title: 'Pricing',      sub: 'Manage pricing packages.' },
+  faq:          { title: 'FAQ',          sub: 'Manage frequently asked questions.' },
+  seo:          { title: 'SEO Manager',  sub: 'Global and page-level SEO.' },
+  locations:    { title: 'Locations',    sub: 'Service locations for local SEO.' },
+  programmatic: { title: 'Programmatic SEO', sub: 'Generate page candidates.' },
+  leads:        { title: 'Leads CRM',    sub: 'Project enquiries and business leads.' },
+  projects:     { title: 'Projects',     sub: 'Active client projects.' },
+  quotes:       { title: 'Quotes',       sub: 'Client quotations.' },
+  media:        { title: 'Media Library',sub: 'Uploaded images.' },
+  settings:     { title: 'Settings',     sub: 'Global site settings.' },
+  security:     { title: 'Security Center', sub: 'Session and account security.' }
+};
+
+function navigate(page) {
+  if (!PAGES[page]) page = 'dashboard';
+  State.currentPage = page;
+
+  $$('.page').forEach(p => p.classList.toggle('active', p.dataset.page === page));
+  $$('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.page === page));
+
+  const meta = PAGES[page];
+  const pt = $('#pageTitle');
+  const ps = $('#pageSub');
+  if (pt) pt.textContent = meta.title;
+  if (ps) ps.textContent = meta.sub;
+
+  /* close mobile sidebar */
+  const sb = $('#sidebar');
+  const ov = $('#sidebarOverlay');
+  if (sb) sb.classList.remove('open');
+  if (ov) ov.classList.remove('open');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  /* lazy render */
+  if (page === 'website')      renderWebsiteTab(State.ui.websiteTab);
+  if (page === 'work')         renderWorkList();
+  if (page === 'reviews')      renderReviews();
+  if (page === 'leads')        renderLeads();
+  if (page === 'services')     renderServices();
+  if (page === 'pricing')      renderPricing();
+  if (page === 'faq')          renderFaq();
+  if (page === 'locations')    renderLocations();
+  if (page === 'seo')          renderSeoPages();
+  if (page === 'projects')     renderProjects();
+  if (page === 'quotes')       renderQuotes();
+  if (page === 'media')        renderMedia();
+  if (page === 'activity')     renderActivity();
+  if (page === 'dashboard')    renderDashboard();
+  if (page === 'programmatic') renderPendingPg();
+}
+
+$$('.nav-item[data-page]').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.page));
+});
+
+$$('[data-goto]').forEach(btn => {
+  btn.addEventListener('click', () => navigate(btn.dataset.goto));
+});
+
+/* ============================================================
+   DATA LOADING
+   ============================================================ */
+async function safeQuery(table, opts = {}) {
+  if (!State.supabase) return { data: [], error: 'no_client' };
+  try {
+    let q = State.supabase.from(table).select(opts.select || '*');
+    if (opts.order) q = q.order(opts.order.column, { ascending: opts.order.ascending !== false });
+    if (opts.limit) q = q.limit(opts.limit);
+    if (opts.eq) q = q.eq(opts.eq.column, opts.eq.value);
+    const { data, error } = await q;
+    if (error) {
+      console.warn(`[${table}]`, error.message);
+      return { data: [], error: error.message };
+    }
+    return { data: data || [], error: null };
+  } catch (err) {
+    console.warn(`[${table}]`, err);
+    return { data: [], error: String(err) };
+  }
+}
+
+async function loadAllData() {
+  const [
+    leads, reviews, work, services, pricing, faq,
+    locations, seoPages, projects, quotes, media, activity
+  ] = await Promise.all([
+    safeQuery('leads', { order: { column: 'created_at', ascending: false }, limit: 500 }),
+    safeQuery('reviews', { order: { column: 'created_at', ascending: false }, limit: 500 }),
+    safeQuery('portfolio_projects', { order: { column: 'display_order', ascending: true } }),
+    safeQuery('services', { order: { column: 'display_order', ascending: true } }),
+    safeQuery('pricing_packages', { order: { column: 'display_order', ascending: true } }),
+    safeQuery('faqs', { order: { column: 'display_order', ascending: true } }),
+    safeQuery('locations', { order: { column: 'name', ascending: true } }),
+    safeQuery('seo_pages', { order: { column: 'created_at', ascending: false } }),
+    safeQuery('business_projects', { order: { column: 'created_at', ascending: false } }),
+    safeQuery('quotes', { order: { column: 'created_at', ascending: false } }),
+    safeQuery('media', { order: { column: 'created_at', ascending: false }, limit: 200 }),
+    safeQuery('activity_logs', { order: { column: 'created_at', ascending: false }, limit: 100 })
+  ]);
+
+  State.cache.leads = leads.data;
+  State.cache.reviews = reviews.data;
+  State.cache.work = work.data;
+  State.cache.services = services.data;
+  State.cache.pricing = pricing.data;
+  State.cache.faq = faq.data;
+  State.cache.locations = locations.data;
+  State.cache.seoPages = seoPages.data;
+  State.cache.projects = projects.data;
+  State.cache.quotes = quotes.data;
+  State.cache.media = media.data;
+  State.cache.activity = activity.data;
+
+  updateBadges();
+  renderDashboard();
+}
+
+function updateBadges() {
+  const pendingReviews = State.cache.reviews.filter(r => r.status === 'pending').length;
+  const newLeads = State.cache.leads.filter(l => l.status === 'new').length;
+
+  const br = $('#badgeReviews');
+  const bl = $('#badgeLeads');
+  if (br) {
+    br.textContent = pendingReviews;
+    br.style.display = pendingReviews > 0 ? '' : 'none';
+  }
+  if (bl) {
+    bl.textContent = newLeads;
+    bl.style.display = newLeads > 0 ? '' : 'none';
+  }
+}
+
+/* ============================================================
+   ACTIVITY LOG
+   ============================================================ */
+async function logActivity(action, resource = '', result = 'success') {
+  if (!State.supabase || !State.user) return;
+  try {
+    await State.supabase.from('activity_logs').insert({
+      user_id: State.user.id,
+      user_email: State.user.email,
+      action,
+      resource,
+      result,
+      created_at: new Date().toISOString()
+    });
+  } catch (err) {
+    console.warn('Activity log failed:', err);
+  }
+}
+
+/* ============================================================
+   DASHBOARD RENDER
+   ============================================================ */
+function renderDashboard() {
+  const leads = State.cache.leads;
+  const reviews = State.cache.reviews;
+  const work = State.cache.work;
+  const projects = State.cache.projects;
+  const seo = State.cache.seoPages;
+
+  const pendingReviews = reviews.filter(r => r.status === 'pending');
+  const publishedReviews = reviews.filter(r => r.status === 'published');
+  const avg = publishedReviews.length
+    ? publishedReviews.reduce((s, r) => s + (r.rating || 0), 0) / publishedReviews.length
+    : 0;
+
+  const setText = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+
+  setText('kpiLeads', leads.length);
+  setText('kpiLeadsFoot', leads.filter(l => l.status === 'new').length + ' new');
+  setText('kpiPendingReviews', pendingReviews.length);
+  setText('kpiApprovedReviews', publishedReviews.length);
+  setText('kpiAvgRating', publishedReviews.length ? `Avg ${avg.toFixed(1)}/5` : 'No ratings yet');
+  setText('kpiWork', work.length);
+  setText('kpiWorkPublished', work.filter(w => w.status === 'published').length + ' published');
+  setText('kpiSeo', seo.filter(s => s.status === 'published').length);
+  setText('kpiProjects', projects.filter(p => !['completed', 'cancelled'].includes(p.status)).length);
+
+  const recentLeads = leads.slice(0, 5);
+  const dashLeads = $('#dashLeads');
+  if (dashLeads) {
+    dashLeads.innerHTML = recentLeads.length
+      ? recentLeads.map(l => `
+          <div class="info-row">
+            <div>
+              <div style="font-weight:500">${escapeHTML(l.name || '—')}</div>
+              <div class="td-muted">${escapeHTML(l.service || l.business || '')}</div>
+            </div>
+            <span class="pill pill-${escapeHTML((l.status || 'new').replace('-', ''))}">${escapeHTML(l.status || 'new')}</span>
+          </div>
+        `).join('')
+      : '<div class="empty" style="padding:1.5rem 1rem"><p>No leads yet.</p></div>';
+  }
+
+  const recentReviews = reviews.slice(0, 4);
+  const dashReviews = $('#dashReviews');
+  if (dashReviews) {
+    dashReviews.innerHTML = recentReviews.length
+      ? recentReviews.map(r => `
+          <div class="info-row">
+            <div>
+              <div style="font-weight:500">${escapeHTML(r.name || '—')}</div>
+              <div class="stars" style="font-size:0.7rem">${starsHTML(r.rating || 0)}</div>
+            </div>
+            <span class="pill pill-${escapeHTML(r.status || 'pending')}">${escapeHTML(r.status || 'pending')}</span>
+          </div>
+        `).join('')
+      : '<div class="empty" style="padding:1.5rem 1rem"><p>No reviews yet.</p></div>';
+  }
+
+  const recentActivity = State.cache.activity.slice(0, 6);
+  const dashActivity = $('#dashActivity');
+  if (dashActivity) {
+    dashActivity.innerHTML = recentActivity.length
+      ? recentActivity.map(a => `
+          <div class="info-row">
+            <div>
+              <div style="font-weight:500">${escapeHTML(a.action || '')}</div>
+              <div class="td-muted">${escapeHTML(a.user_email || '')} · ${formatDateTime(a.created_at)}</div>
+            </div>
+          </div>
+        `).join('')
+      : '<div class="empty" style="padding:1.5rem 1rem"><p>No activity logged yet.</p></div>';
+  }
+                                                     }
+  /* ============================================================
+   WEBSITE CMS — TAB SWITCHING
+   ============================================================ */
+$$('.tab[data-tab]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.tab[data-tab]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    State.ui.websiteTab = tab.dataset.tab;
+    renderWebsiteTab(tab.dataset.tab);
+  });
+});
+
+async function renderWebsiteTab(tab) {
+  const el = $('#tabContent');
+  if (!el) return;
+  el.innerHTML = '<div class="loading"><span class="spinner"></span> Loading...</div>';
+
+  if (!State.supabase) {
+    el.innerHTML = '<div class="empty"><p>Supabase not configured.</p></div>';
+    return;
+  }
+
+  const { data } = await safeQuery('site_settings');
+  const record = data && data.find(x => x.section === tab);
+  const content = record && record.content ? record.content : {};
+
+  el.innerHTML = websiteTabForm(tab, content);
+
+  $$('[data-save-website]', el).forEach(btn => {
+    btn.addEventListener('click', () => saveWebsiteTab(tab, btn.dataset.saveWebsite));
+  });
+}
+
+function websiteTabForm(tab, c) {
+  const F = (id, label, val, type = 'text') => `
+    <div class="field">
+      <label for="${id}">${label}</label>
+      ${type === 'textarea'
+        ? `<textarea id="${id}" data-field="${id}">${escapeHTML(val || '')}</textarea>`
+        : `<input type="text" id="${id}" data-field="${id}" value="${escapeHTML(val || '')}">`}
+    </div>`;
+
+  const actions = `
+    <div class="editor-actions">
+      <button class="btn btn-ghost" data-save-website="draft" type="button">Save Draft</button>
+      <button class="btn btn-primary" data-save-website="published" type="button">Publish</button>
+    </div>`;
+
+  if (tab === 'hero') {
+    return `
+      <div class="editor-grid">
+        ${F('eyebrow', 'Eyebrow label', c.eyebrow)}
+        ${F('location', 'Location line', c.location)}
+        <div style="grid-column:1/-1">${F('headline', 'Headline', c.headline, 'textarea')}</div>
+        <div style="grid-column:1/-1">${F('description', 'Description', c.description, 'textarea')}</div>
+        ${F('ctaPrimary', 'Primary CTA text', c.ctaPrimary)}
+        ${F('ctaSecondary', 'Secondary CTA text', c.ctaSecondary)}
+        ${F('price', 'Starting price', c.price)}
+      </div>
+      ${actions}
+    `;
+  }
+
+  if (tab === 'about') {
+    return `
+      <div class="editor-grid">
+        ${F('founderName', 'Founder name', c.founderName)}
+        ${F('founderTitle', 'Founder title', c.founderTitle)}
+        <div style="grid-column:1/-1">${F('story', 'Founder story', c.story, 'textarea')}</div>
+        <div style="grid-column:1/-1">${F('statement', 'Founder statement', c.statement, 'textarea')}</div>
+      </div>
+      ${actions}
+    `;
+  }
+
+  if (tab === 'why') {
+    const items = c.items || [
+      'Built around your business.',
+      'Designed for real people.',
+      'Engineered for the web.',
+      'Optimized for discovery.',
+      'Made to evolve.'
+    ];
+    return `
+      <div class="editor-grid">
+        ${items.map((it, i) => F('why_' + i, `Statement ${i + 1}`, it)).join('')}
+      </div>
+      ${actions}
+    `;
+  }
+
+  if (tab === 'process') {
+    const steps = c.steps || [
+      { title: 'Discover', desc: 'Understanding your business, goals and requirements.' },
+      { title: 'Plan', desc: 'Architecture, structure and strategy.' },
+      { title: 'Design', desc: 'Interface, experience and visual system.' },
+      { title: 'Build', desc: 'Development, functionality and integration.' },
+      { title: 'Optimize', desc: 'Performance, SEO and refinement.' },
+      { title: 'Launch', desc: 'Deployment and go-live.' },
+      { title: 'Support', desc: 'Ongoing assistance and evolution.' }
+    ];
+    return `
+      <div class="editor-grid">
+        ${steps.map((s, i) => `
+          <div class="card" style="padding:1rem">
+            ${F('step_' + i + '_title', `Step ${i + 1} title`, s.title)}
+            ${F('step_' + i + '_desc', 'Description', s.desc, 'textarea')}
+          </div>
+        `).join('')}
+      </div>
+      ${actions}
+    `;
+  }
+
+  if (tab === 'contactInfo') {
+    return `
+      <div class="editor-grid">
+        ${F('address', 'Address', c.address || 'Mangalam, Tirupur — 641663, Tamil Nadu, India')}
+        ${F('whatsapp', 'WhatsApp', c.whatsapp)}
+        ${F('email', 'Email', c.email)}
+        <div style="grid-column:1/-1">${F('headline', 'Contact headline', c.headline || "Let's Build Something Useful.")}</div>
+      </div>
+      ${actions}
+    `;
+  }
+
+  if (tab === 'footer') {
+    return `
+      <div class="editor-grid">
+        ${F('tagline', 'Tagline', c.tagline || 'Digital technology and business solutions built around your needs.')}
+        ${F('copyright', 'Copyright line', c.copyright || '© 2026 Noctis Technologies. All rights reserved.')}
+        <div style="grid-column:1/-1">${F('finalLine', 'Final line', c.finalLine || 'The creator of this page — Noctis Technologies — 2026.')}</div>
+      </div>
+      ${actions}
+    `;
+  }
+
+  return '<div class="empty"><p>Unknown tab.</p></div>';
+}
+
+async function saveWebsiteTab(tab, status) {
+  if (!State.supabase) return toast('error', 'Not connected');
+  const el = $('#tabContent');
+  const content = {};
+
+  $$('[data-field]', el).forEach(input => {
+    content[input.dataset.field] = input.value;
+  });
+
+  /* Reassemble process steps */
+  if (tab === 'process') {
+    const steps = [];
+    let i = 0;
+    while (content['step_' + i + '_title'] !== undefined) {
+      steps.push({
+        title: content['step_' + i + '_title'],
+        desc: content['step_' + i + '_desc'] || ''
+      });
+      delete content['step_' + i + '_title'];
+      delete content['step_' + i + '_desc'];
+      i++;
+    }
+    content.steps = steps;
+  }
+
+  /* Reassemble why list */
+  if (tab === 'why') {
+    const items = [];
+    let i = 0;
+    while (content['why_' + i] !== undefined) {
+      items.push(content['why_' + i]);
+      delete content['why_' + i];
+      i++;
+    }
+    content.items = items;
+  }
+
+  try {
+    const { data: existing } = await State.supabase
+      .from('site_settings')
+      .select('id')
+      .eq('section', tab)
+      .maybeSingle();
+
+    if (existing && existing.id) {
+      await State.supabase
+        .from('site_settings')
+        .update({ content, status, updated_at: new Date().toISOString() })
+        .eq('id', existing.id);
+    } else {
+      await State.supabase.from('site_settings').insert({
+        section: tab,
+        content,
+        status,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      });
+    }
+
+    logActivity('UPDATE WEBSITE', `section:${tab}`, status);
+    toast('success', status === 'published' ? 'Published' : 'Draft saved', `Website ${tab} section updated.`);
+  } catch (err) {
+    toast('error', 'Save failed', err.message || 'Unable to save changes.');
+  }
+  }
+  /* ============================================================
+   SERVICES — RENDER
+   ============================================================ */
+function renderServices() {
+  const list = State.cache.services;
+  const el = $('#servicesList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No services yet</h4><p>Add your first service offering.</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Order</th><th>Name</th><th>Status</th><th>Description</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(s => `
+            <tr>
+              <td data-label="Order">${s.display_order ?? '—'}</td>
+              <td data-label="Name"><strong>${escapeHTML(s.name || '')}</strong></td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML(s.status || 'draft')}">${escapeHTML(s.status || 'draft')}</span></td>
+              <td data-label="Description" class="td-muted">${escapeHTML((s.short_description || '').slice(0, 80))}${(s.short_description || '').length > 80 ? '…' : ''}</td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-edit-service="${escapeHTML(s.id)}" type="button">Edit</button>
+                  <button class="btn btn-xs btn-danger" data-del-service="${escapeHTML(s.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-edit-service]', el).forEach(b => b.addEventListener('click', () => editService(b.dataset.editService)));
+  $$('[data-del-service]', el).forEach(b => b.addEventListener('click', () => deleteService(b.dataset.delService)));
+}
+
+/* ============================================================
+   SERVICES — ADD / EDIT
+   ============================================================ */
+(function () {
+  const addBtn = $('#addServiceBtn');
+  if (addBtn) addBtn.addEventListener('click', () => editService(null));
+})();
+
+function editService(id) {
+  const s = id ? State.cache.services.find(x => x.id === id) : null;
+  Modal.open({
+    title: s ? 'Edit Service' : 'Add Service',
+    body: `
+      <div class="field mb">
+        <label>Name <span class="req">*</span></label>
+        <input type="text" id="svName" value="${escapeHTML(s?.name || '')}">
+      </div>
+      <div class="field mb">
+        <label>Short description</label>
+        <textarea id="svShort" rows="3">${escapeHTML(s?.short_description || '')}</textarea>
+      </div>
+      <div class="field mb">
+        <label>Long description</label>
+        <textarea id="svLong" rows="4">${escapeHTML(s?.long_description || '')}</textarea>
+      </div>
+      <div class="field-row mb">
+        <div class="field">
+          <label>Order</label>
+          <input type="number" id="svOrder" value="${s?.display_order ?? (State.cache.services.length + 1)}">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="svStatus">
+            <option value="draft"${s?.status === 'draft' ? ' selected' : ''}>Draft</option>
+            <option value="published"${s?.status === 'published' ? ' selected' : ''}>Published</option>
+            <option value="archived"${s?.status === 'archived' ? ' selected' : ''}>Archived</option>
+          </select>
+        </div>
+      </div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn btn-primary" data-save type="button">Save</button>
+    `,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = {
+          name: $('#svName').value.trim(),
+          short_description: $('#svShort').value.trim(),
+          long_description: $('#svLong').value.trim(),
+          display_order: parseInt($('#svOrder').value) || 0,
+          status: $('#svStatus').value,
+          updated_at: new Date().toISOString()
+        };
+        if (!data.name) return toast('warning', 'Name required');
+
+        try {
+          if (s) {
+            await State.supabase.from('services').update(data).eq('id', s.id);
+          } else {
+            await State.supabase.from('services').insert({ ...data, created_at: new Date().toISOString() });
+          }
+          logActivity(s ? 'UPDATE SERVICE' : 'CREATE SERVICE', data.name);
+          toast('success', 'Saved');
+          Modal.close();
+          await loadAllData();
+          renderServices();
+        } catch (err) {
+          toast('error', 'Save failed', err.message);
+        }
+      });
+    }
+  });
+}
+
+/* ============================================================
+   SERVICES — DELETE
+   ============================================================ */
+function deleteService(id) {
+  const s = State.cache.services.find(x => x.id === id);
+  if (!s) return;
+  confirmDialog({
+    title: 'Delete service?',
+    message: `Delete "${s.name}"? This cannot be undone.`,
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('services').delete().eq('id', id);
+        logActivity('DELETE SERVICE', s.name);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderServices();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+}
+  /* ============================================================
+   WORK / PORTFOLIO — RENDER LIST
+   ============================================================ */
+function renderWorkList() {
+  const search = ($('#workSearch')?.value || '').toLowerCase();
+  const filter = $('#workFilter')?.value || '';
+  let list = State.cache.work.slice();
+
+  if (search) {
+    list = list.filter(w =>
+      (w.title || '').toLowerCase().includes(search) ||
+      (w.category || '').toLowerCase().includes(search)
+    );
+  }
+  if (filter) list = list.filter(w => w.status === filter);
+
+  const el = $('#workList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No projects yet</h4><p>Add your first portfolio project.</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Preview</th><th>Title</th><th>Category</th><th>Project URL</th><th>Status</th><th>Order</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(w => `
+            <tr>
+              <td data-label="Preview">
+                <div style="width:60px;height:40px;border-radius:4px;overflow:hidden;background:var(--surface-2);border:1px solid var(--border-fine)">
+                  ${w.image_url ? `<img src="${escapeHTML(w.image_url)}" style="width:100%;height:100%;object-fit:cover">` : ''}
+                </div>
+              </td>
+              <td data-label="Title"><strong>${escapeHTML(w.title || '')}</strong></td>
+              <td data-label="Category">${escapeHTML(w.category || '—')}</td>
+              <td data-label="URL">${w.project_url ? `<a href="${escapeHTML(w.project_url)}" target="_blank" rel="noopener" style="color:var(--orange)">Open →</a>` : '—'}</td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML(w.status || 'draft')}">${escapeHTML(w.status || 'draft')}</span></td>
+              <td data-label="Order">${w.display_order ?? '—'}</td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-edit-work="${escapeHTML(w.id)}" type="button">Edit</button>
+                  <button class="btn btn-xs btn-danger" data-del-work="${escapeHTML(w.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-edit-work]', el).forEach(b => b.addEventListener('click', () => editWork(b.dataset.editWork)));
+  $$('[data-del-work]', el).forEach(b => b.addEventListener('click', () => deleteWork(b.dataset.delWork)));
+}
+
+/* ---------- Search + Filter binding ---------- */
+(function () {
+  const ws = $('#workSearch');
+  const wf = $('#workFilter');
+  if (ws) ws.addEventListener('input', debounce(renderWorkList, 250));
+  if (wf) wf.addEventListener('change', renderWorkList);
+})();
+
+/* ---------- Add Project button ---------- */
+(function () {
+  const addBtn = $('#addWorkBtn');
+  if (addBtn) addBtn.addEventListener('click', () => editWork(null));
+})();
+  /* ============================================================
+   WORK — EDIT MODAL
+   ============================================================ */
+function editWork(id) {
+  const w = id ? State.cache.work.find(x => x.id === id) : null;
+  Modal.open({
+    title: w ? 'Edit Project' : 'Add Project',
+    wide: true,
+    sub: 'Project image is clickable on the public website and links to the Project URL.',
+    body: `
+      <div class="field mb">
+        <label>Project Title <span class="req">*</span></label>
+        <input type="text" id="wTitle" value="${escapeHTML(w?.title || '')}">
+      </div>
+      <div class="field-row mb">
+        <div class="field">
+          <label>Category</label>
+          <input type="text" id="wCategory" value="${escapeHTML(w?.category || '')}" placeholder="E-Commerce">
+        </div>
+        <div class="field">
+          <label>Year</label>
+          <input type="text" id="wYear" value="${escapeHTML(w?.year || '2026')}">
+        </div>
+      </div>
+      <div class="field mb">
+        <label>Short Description</label>
+        <textarea id="wShort" rows="2">${escapeHTML(w?.short_description || '')}</textarea>
+      </div>
+      <div class="field mb">
+        <label>Full Description</label>
+        <textarea id="wFull" rows="4">${escapeHTML(w?.full_description || '')}</textarea>
+      </div>
+      <div class="field mb">
+        <label>Tags</label>
+        <input type="text" id="wTags" value="${escapeHTML(w?.tags || '')}" placeholder="HTML, CSS, JavaScript">
+        <span class="field-hint">Comma-separated.</span>
+      </div>
+      <div class="field mb">
+        <label>Project URL <span class="req">*</span></label>
+        <input type="url" id="wUrl" value="${escapeHTML(w?.project_url || '')}" placeholder="https://example.com">
+        <span class="field-hint">Where the project image links when clicked.</span>
+      </div>
+      <div class="field mb">
+        <label>Project Image</label>
+        <input type="file" id="wImage" accept="image/png,image/jpeg,image/webp">
+        <span class="field-hint">JPG, PNG, or WEBP. Max 5MB.</span>
+        <div id="wImagePreview" class="img-preview mt">
+          ${w?.image_url ? `<img src="${escapeHTML(w.image_url)}">` : '<div class="placeholder"><p>No image selected</p></div>'}
+        </div>
+      </div>
+      <div class="field-row mb">
+        <div class="field">
+          <label>Order</label>
+          <input type="number" id="wOrder" value="${w?.display_order ?? (State.cache.work.length + 1)}">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="wStatus">
+            <option value="draft"${w?.status === 'draft' ? ' selected' : ''}>Draft</option>
+            <option value="published"${w?.status === 'published' ? ' selected' : ''}>Published</option>
+            <option value="archived"${w?.status === 'archived' ? ' selected' : ''}>Archived</option>
+          </select>
+        </div>
+      </div>
+      <div class="field mb">
+        <label class="check">
+          <input type="checkbox" id="wFeatured"${w?.featured ? ' checked' : ''}>
+          <span class="check-box"></span>
+          Featured project
+        </label>
+      </div>
+      <div class="divider"></div>
+      <div class="label" style="margin-bottom:0.6rem">Live Preview</div>
+      <div class="project-preview" id="wPreview"></div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn btn-primary" data-save type="button">Save Project</button>
+    `,
+    onOpen: () => {
+      updateWorkPreview(w);
+
+      ['wTitle', 'wCategory', 'wShort', 'wUrl'].forEach(fid => {
+        const el = $('#' + fid);
+        if (el) el.addEventListener('input', () => updateWorkPreview(w));
+      });
+
+      const imgInput = $('#wImage');
+      if (imgInput) {
+        imgInput.addEventListener('change', (e) => {
+          const f = e.target.files[0];
+          if (!f) return;
+          if (f.size > 5 * 1024 * 1024) return toast('warning', 'Too large', 'Max 5MB.');
+          const r = new FileReader();
+          r.onload = (ev) => {
+            const prev = $('#wImagePreview');
+            if (prev) prev.innerHTML = `<img src="${ev.target.result}">`;
+            updateWorkPreview(w, ev.target.result);
+          };
+          r.readAsDataURL(f);
+        });
+      }
+
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', () => saveWork(w));
+    }
+  });
+}
+
+/* ============================================================
+   WORK — LIVE PREVIEW
+   ============================================================ */
+function updateWorkPreview(w, previewSrc) {
+  const title = $('#wTitle')?.value || 'Project Title';
+  const category = $('#wCategory')?.value || 'Category';
+  const desc = $('#wShort')?.value || 'Short description';
+  const img = previewSrc || w?.image_url;
+  const el = $('#wPreview');
+  if (!el) return;
+  el.innerHTML = `
+    <div class="pv-img">${img ? `<img src="${escapeHTML(img)}">` : ''}</div>
+    <div class="pv-body">
+      <div class="pv-cat">${escapeHTML(category)}</div>
+      <div class="pv-title">${escapeHTML(title)}</div>
+      <div class="pv-desc">${escapeHTML(desc)}</div>
+      <span class="pv-link">VIEW PROJECT →</span>
+    </div>
+  `;
+}
+
+/* ============================================================
+   WORK — SAVE
+   ============================================================ */
+async function saveWork(existing) {
+  const title = $('#wTitle').value.trim();
+  const projectUrl = $('#wUrl').value.trim();
+  if (!title) return toast('warning', 'Title required');
+  if (!projectUrl) return toast('warning', 'Project URL required');
+
+  const data = {
+    title,
+    category: $('#wCategory').value.trim(),
+    year: $('#wYear').value.trim(),
+    short_description: $('#wShort').value.trim(),
+    full_description: $('#wFull').value.trim(),
+    tags: $('#wTags').value.trim(),
+    project_url: projectUrl,
+    display_order: parseInt($('#wOrder').value) || 0,
+    status: $('#wStatus').value,
+    featured: $('#wFeatured').checked,
+    updated_at: new Date().toISOString()
+  };
+
+  const saveBtn = $('[data-save]');
+  saveBtn.disabled = true;
+  const orig = saveBtn.textContent;
+  saveBtn.textContent = 'Saving...';
+
+  try {
+    let imageUrl = existing?.image_url || null;
+    const fileInput = $('#wImage');
+
+    if (fileInput.files && fileInput.files[0]) {
+      const f = fileInput.files[0];
+      const path = `portfolio/${Date.now()}_${f.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+      const { error: upErr } = await State.supabase.storage
+        .from('portfolio')
+        .upload(path, f, { upsert: false, cacheControl: '3600' });
+      if (upErr) {
+        console.warn('Upload failed:', upErr.message);
+        toast('warning', 'Upload skipped', upErr.message);
+      } else {
+        const { data: pub } = State.supabase.storage.from('portfolio').getPublicUrl(path);
+        imageUrl = pub?.publicUrl || imageUrl;
+      }
+    }
+
+    if (imageUrl) data.image_url = imageUrl;
+
+    if (existing) {
+      await State.supabase.from('portfolio_projects').update(data).eq('id', existing.id);
+      logActivity('UPDATE WORK', title);
+      toast('success', 'Project updated', title);
+    } else {
+      data.created_at = new Date().toISOString();
+      await State.supabase.from('portfolio_projects').insert(data);
+      logActivity('CREATE WORK', title);
+      toast('success', 'Project added', title);
+    }
+
+    Modal.close();
+    await loadAllData();
+    renderWorkList();
+  } catch (err) {
+    toast('error', 'Save failed', err.message);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = orig;
+  }
+}
+
+/* ============================================================
+   WORK — DELETE
+   ============================================================ */
+function deleteWork(id) {
+  const w = State.cache.work.find(x => x.id === id);
+  if (!w) return;
+  confirmDialog({
+    title: 'Delete project?',
+    message: `Delete "${w.title}"? This cannot be undone.`,
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('portfolio_projects').delete().eq('id', id);
+        logActivity('DELETE WORK', w.title);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderWorkList();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+                                                             }
+  /* ============================================================
+   REVIEWS — TAB SWITCHING
+   ============================================================ */
+$$('.tab[data-rtab]').forEach(tab => {
+  tab.addEventListener('click', () => {
+    $$('.tab[data-rtab]').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    State.ui.reviewTab = tab.dataset.rtab;
+    renderReviews();
+  });
+});
+
+/* ============================================================
+   REVIEWS — RENDER
+   ============================================================ */
+function renderReviews() {
+  const all = State.cache.reviews;
+
+  const published = all.filter(r => r.status === 'published');
+  const avg = published.length
+    ? published.reduce((s, r) => s + (r.rating || 0), 0) / published.length
+    : 0;
+
+  const rs = $('#reviewSummary');
+  if (rs) {
+    rs.innerHTML = `
+      <div>
+        <div class="score">${avg.toFixed(1)}<small>/5</small></div>
+      </div>
+      <div class="meta">
+        <div class="stars" style="color:var(--orange)">${starsHTML(Math.round(avg))}</div>
+        <div class="label">Based on ${published.length} published review${published.length === 1 ? '' : 's'}</div>
+      </div>
+    `;
+  }
+
+  const setCount = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = n; };
+  setCount('rCountPending', all.filter(r => r.status === 'pending').length);
+  setCount('rCountApproved', published.length);
+  setCount('rCountRejected', all.filter(r => r.status === 'rejected').length);
+  setCount('rCountHidden', all.filter(r => r.status === 'hidden').length);
+
+  const tab = State.ui.reviewTab;
+  const list = all.filter(r => r.status === tab);
+  const el = $('#reviewsList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = `<div class="empty"><h4>No ${tab} reviews</h4></div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(r => {
+    const name = r.name || 'Anonymous';
+    const ini = name.trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    const av = r.photo_url
+      ? `<div class="avatar lg"><img src="${escapeHTML(r.photo_url)}" alt=""></div>`
+      : `<div class="avatar lg">${escapeHTML(ini)}</div>`;
+
+    const actions = {
+      pending: `
+        <button class="btn btn-xs btn-success" data-approve="${escapeHTML(r.id)}" type="button">Approve</button>
+        <button class="btn btn-xs btn-danger" data-reject="${escapeHTML(r.id)}" type="button">Reject</button>
+        <button class="btn btn-xs btn-ghost" data-hide="${escapeHTML(r.id)}" type="button">Hide</button>
+      `,
+      published: `
+        <button class="btn btn-xs btn-ghost" data-hide="${escapeHTML(r.id)}" type="button">Hide</button>
+        <button class="btn btn-xs btn-danger" data-delete="${escapeHTML(r.id)}" type="button">Delete</button>
+      `,
+      rejected: `
+        <button class="btn btn-xs btn-success" data-approve="${escapeHTML(r.id)}" type="button">Approve</button>
+        <button class="btn btn-xs btn-danger" data-delete="${escapeHTML(r.id)}" type="button">Delete</button>
+      `,
+      hidden: `
+        <button class="btn btn-xs btn-success" data-approve="${escapeHTML(r.id)}" type="button">Approve</button>
+        <button class="btn btn-xs btn-danger" data-delete="${escapeHTML(r.id)}" type="button">Delete</button>
+      `
+    }[tab] || '';
+
+    const meta = [r.business, r.location].filter(Boolean).join(' · ');
+
+    return `
+      <div class="card mb" style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">
+        ${av}
+        <div style="flex:1;min-width:200px">
+          <div class="flex-between" style="align-items:flex-start">
+            <div>
+              <strong>${escapeHTML(name)}</strong>
+              <div class="stars" style="margin:0.3rem 0">${starsHTML(r.rating || 0)}</div>
+            </div>
+            <div class="td-muted" style="font-size:0.72rem">${formatDate(r.created_at)}</div>
+          </div>
+          <p style="margin-top:0.5rem;color:var(--muted);font-size:0.85rem;line-height:1.7">${escapeHTML(r.comment || '')}</p>
+          ${meta ? `<div class="td-muted" style="font-size:0.72rem;margin-top:0.5rem">${escapeHTML(meta)}</div>` : ''}
+          <div class="td-actions" style="justify-content:flex-start;margin-top:0.75rem;padding-top:0.75rem;border-top:1px solid var(--border-fine)">${actions}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  $$('[data-approve]', el).forEach(b => b.addEventListener('click', () => setReviewStatus(b.dataset.approve, 'published')));
+  $$('[data-reject]', el).forEach(b => b.addEventListener('click', () => setReviewStatus(b.dataset.reject, 'rejected')));
+  $$('[data-hide]', el).forEach(b => b.addEventListener('click', () => setReviewStatus(b.dataset.hide, 'hidden')));
+  $$('[data-delete]', el).forEach(b => b.addEventListener('click', () => deleteReview(b.dataset.delete)));
+}
+
+/* ============================================================
+   REVIEWS — UPDATE STATUS
+   ============================================================ */
+async function setReviewStatus(id, status) {
+  try {
+    await State.supabase.from('reviews')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', id);
+    logActivity('UPDATE REVIEW', `status:${status}`);
+    toast('success', 'Review ' + status);
+    await loadAllData();
+    renderReviews();
+  } catch (err) {
+    toast('error', 'Update failed', err.message);
+  }
+}
+
+/* ============================================================
+   REVIEWS — DELETE
+   ============================================================ */
+function deleteReview(id) {
+  confirmDialog({
+    title: 'Delete review?',
+    message: 'This review will be permanently deleted.',
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('reviews').delete().eq('id', id);
+        logActivity('DELETE REVIEW', id);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderReviews();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+      }
+  /* ============================================================
+   PRICING — RENDER
+   ============================================================ */
+function renderPricing() {
+  const list = State.cache.pricing;
+  const el = $('#pricingList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No pricing packages</h4></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Package</th><th>Price</th><th>Order</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(p => `
+            <tr>
+              <td data-label="Package"><strong>${escapeHTML(p.name || '')}</strong></td>
+              <td data-label="Price">₹${escapeHTML(p.price || '')}</td>
+              <td data-label="Order">${p.display_order ?? '—'}</td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML(p.status || 'draft')}">${escapeHTML(p.status || 'draft')}</span></td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-edit-price="${escapeHTML(p.id)}" type="button">Edit</button>
+                  <button class="btn btn-xs btn-danger" data-del-price="${escapeHTML(p.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-edit-price]', el).forEach(b => b.addEventListener('click', () => editPricing(b.dataset.editPrice)));
+  $$('[data-del-price]', el).forEach(b => b.addEventListener('click', () => deletePricing(b.dataset.delPrice)));
+}
+
+/* ---------- Add Package ---------- */
+(function () {
+  const addBtn = $('#addPricingBtn');
+  if (addBtn) addBtn.addEventListener('click', () => editPricing(null));
+})();
+
+/* ---------- Edit / Add ---------- */
+function editPricing(id) {
+  const p = id ? State.cache.pricing.find(x => x.id === id) : null;
+  Modal.open({
+    title: p ? 'Edit Package' : 'Add Package',
+    body: `
+      <div class="field mb">
+        <label>Name</label>
+        <input type="text" id="prName" value="${escapeHTML(p?.name || '')}">
+      </div>
+      <div class="field mb">
+        <label>Price</label>
+        <input type="text" id="prPrice" value="${escapeHTML(p?.price || '')}" placeholder="1,999">
+      </div>
+      <div class="field mb">
+        <label>Description</label>
+        <textarea id="prDesc" rows="2">${escapeHTML(p?.description || '')}</textarea>
+      </div>
+      <div class="field mb">
+        <label>Features (one per line)</label>
+        <textarea id="prFeatures" rows="5">${escapeHTML((p?.features || []).join('\n'))}</textarea>
+      </div>
+      <div class="field-row mb">
+        <div class="field">
+          <label>Order</label>
+          <input type="number" id="prOrder" value="${p?.display_order ?? (State.cache.pricing.length + 1)}">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="prStatus">
+            <option value="draft"${p?.status === 'draft' ? ' selected' : ''}>Draft</option>
+            <option value="published"${p?.status === 'published' ? ' selected' : ''}>Published</option>
+          </select>
+        </div>
+      </div>
+      <div class="field mb">
+        <label class="check">
+          <input type="checkbox" id="prFeatured"${p?.featured ? ' checked' : ''}>
+          <span class="check-box"></span>
+          Mark as "Popular" (featured)
+        </label>
+      </div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn btn-primary" data-save type="button">Save</button>
+    `,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = {
+          name: $('#prName').value.trim(),
+          price: $('#prPrice').value.trim(),
+          description: $('#prDesc').value.trim(),
+          features: $('#prFeatures').value.split('\n').map(s => s.trim()).filter(Boolean),
+          display_order: parseInt($('#prOrder').value) || 0,
+          status: $('#prStatus').value,
+          featured: $('#prFeatured').checked,
+          updated_at: new Date().toISOString()
+        };
+        if (!data.name) return toast('warning', 'Name required');
+        try {
+          if (p) {
+            await State.supabase.from('pricing_packages').update(data).eq('id', p.id);
+          } else {
+            await State.supabase.from('pricing_packages').insert({ ...data, created_at: new Date().toISOString() });
+          }
+          logActivity(p ? 'UPDATE PRICING' : 'CREATE PRICING', data.name);
+          toast('success', 'Saved');
+          Modal.close();
+          await loadAllData();
+          renderPricing();
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      });
+    }
+  });
+}
+
+/* ---------- Delete ---------- */
+function deletePricing(id) {
+  const p = State.cache.pricing.find(x => x.id === id);
+  if (!p) return;
+  confirmDialog({
+    title: 'Delete package?',
+    message: `Delete "${p.name}"?`,
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('pricing_packages').delete().eq('id', id);
+        logActivity('DELETE PRICING', p.name);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderPricing();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+    }
+  /* ============================================================
+   FAQ — RENDER
+   ============================================================ */
+function renderFaq() {
+  const list = State.cache.faq;
+  const el = $('#faqList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No FAQs</h4></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Question</th><th>Order</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(f => `
+            <tr>
+              <td data-label="Question"><strong>${escapeHTML(f.question || '')}</strong></td>
+              <td data-label="Order">${f.display_order ?? '—'}</td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML(f.status || 'draft')}">${escapeHTML(f.status || 'draft')}</span></td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-edit-faq="${escapeHTML(f.id)}" type="button">Edit</button>
+                  <button class="btn btn-xs btn-danger" data-del-faq="${escapeHTML(f.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-edit-faq]', el).forEach(b => b.addEventListener('click', () => editFaq(b.dataset.editFaq)));
+  $$('[data-del-faq]', el).forEach(b => b.addEventListener('click', () => deleteFaq(b.dataset.delFaq)));
+}
+
+/* ---------- Add FAQ ---------- */
+(function () {
+  const addBtn = $('#addFaqBtn');
+  if (addBtn) addBtn.addEventListener('click', () => editFaq(null));
+})();
+
+/* ---------- Edit / Add ---------- */
+function editFaq(id) {
+  const f = id ? State.cache.faq.find(x => x.id === id) : null;
+  Modal.open({
+    title: f ? 'Edit FAQ' : 'Add FAQ',
+    body: `
+      <div class="field mb">
+        <label>Question</label>
+        <input type="text" id="fqQ" value="${escapeHTML(f?.question || '')}">
+      </div>
+      <div class="field mb">
+        <label>Answer</label>
+        <textarea id="fqA" rows="4">${escapeHTML(f?.answer || '')}</textarea>
+      </div>
+      <div class="field-row mb">
+        <div class="field">
+          <label>Order</label>
+          <input type="number" id="fqOrder" value="${f?.display_order ?? (State.cache.faq.length + 1)}">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="fqStatus">
+            <option value="draft"${f?.status === 'draft' ? ' selected' : ''}>Draft</option>
+            <option value="published"${f?.status === 'published' ? ' selected' : ''}>Published</option>
+          </select>
+        </div>
+      </div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn btn-primary" data-save type="button">Save</button>
+    `,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = {
+          question: $('#fqQ').value.trim(),
+          answer: $('#fqA').value.trim(),
+          display_order: parseInt($('#fqOrder').value) || 0,
+          status: $('#fqStatus').value,
+          updated_at: new Date().toISOString()
+        };
+        if (!data.question) return toast('warning', 'Question required');
+        try {
+          if (f) {
+            await State.supabase.from('faqs').update(data).eq('id', f.id);
+          } else {
+            await State.supabase.from('faqs').insert({ ...data, created_at: new Date().toISOString() });
+          }
+          logActivity(f ? 'UPDATE FAQ' : 'CREATE FAQ', data.question);
+          toast('success', 'Saved');
+          Modal.close();
+          await loadAllData();
+          renderFaq();
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      });
+    }
+  });
+}
+
+/* ---------- Delete ---------- */
+function deleteFaq(id) {
+  const f = State.cache.faq.find(x => x.id === id);
+  if (!f) return;
+  confirmDialog({
+    title: 'Delete FAQ?',
+    message: `Delete "${f.question}"?`,
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('faqs').delete().eq('id', id);
+        logActivity('DELETE FAQ', f.question);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderFaq();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+          }
+  /* ============================================================
+   SEO MANAGER — GLOBAL SAVE
+   ============================================================ */
+$$('[data-save-seo]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const status = btn.dataset.saveSeo;
+    const data = {
+      site_title: $('#seoTitle').value.trim(),
+      meta_description: $('#seoDescription').value.trim(),
+      canonical: $('#seoCanonical').value.trim(),
+      og_title: $('#seoOgTitle').value.trim(),
+      og_image: $('#seoOgImage').value.trim(),
+      robots: $('#seoRobots').value,
+      status,
+      updated_at: new Date().toISOString()
+    };
+    try {
+      const { data: ex } = await State.supabase
+        .from('seo_settings')
+        .select('id')
+        .maybeSingle();
+
+      if (ex) {
+        await State.supabase.from('seo_settings').update(data).eq('id', ex.id);
+      } else {
+        await State.supabase.from('seo_settings').insert({ ...data, created_at: new Date().toISOString() });
+      }
+      logActivity('UPDATE SEO', 'global', status);
+      toast('success', status === 'published' ? 'Published' : 'Draft saved');
+    } catch (err) {
+      toast('error', 'Failed', err.message);
+    }
+  });
+});
+
+/* ============================================================
+   SEO PAGES — RENDER LIST
+   ============================================================ */
+function renderSeoPages() {
+  const list = State.cache.seoPages.filter(s => s.status !== 'pending');
+  const el = $('#seoPagesList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No SEO pages</h4></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Path</th><th>Title</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(s => `
+            <tr>
+              <td data-label="Path"><code>${escapeHTML(s.path || s.slug || '')}</code></td>
+              <td data-label="Title">${escapeHTML(s.title || '')}</td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML(s.status || 'draft')}">${escapeHTML(s.status || 'draft')}</span></td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-danger" data-del-seo="${escapeHTML(s.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-del-seo]', el).forEach(b => b.addEventListener('click', () => {
+    confirmDialog({
+      title: 'Delete SEO page?',
+      message: 'This page will be deleted.',
+      onConfirm: async () => {
+        try {
+          await State.supabase.from('seo_pages').delete().eq('id', b.dataset.delSeo);
+          logActivity('DELETE SEO PAGE', b.dataset.delSeo);
+          toast('success', 'Deleted');
+          await loadAllData();
+          renderSeoPages();
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      }
+    });
+  }));
+}
+
+/* ============================================================
+   SEO PAGES — ADD
+   ============================================================ */
+(function () {
+  const btn = $('#addSeoPageBtn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    Modal.open({
+      title: 'Add SEO Page',
+      body: `
+        <div class="field mb">
+          <label>Path</label>
+          <input type="text" id="spPath" placeholder="/services/web-development">
+        </div>
+        <div class="field mb">
+          <label>Title</label>
+          <input type="text" id="spTitle">
+        </div>
+        <div class="field mb">
+          <label>Description</label>
+          <textarea id="spDesc" rows="2"></textarea>
+        </div>
+        <div class="field mb">
+          <label class="check">
+            <input type="checkbox" id="spNoindex">
+            <span class="check-box"></span>
+            Noindex
+          </label>
+        </div>
+      `,
+      foot: `
+        <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+        <button class="btn btn-primary" data-save type="button">Save</button>
+      `,
+      onOpen: () => {
+        $('[data-cancel]').addEventListener('click', () => Modal.close());
+        $('[data-save]').addEventListener('click', async () => {
+          const data = {
+            path: $('#spPath').value.trim(),
+            title: $('#spTitle').value.trim(),
+            description: $('#spDesc').value.trim(),
+            noindex: $('#spNoindex').checked,
+            status: 'draft',
+            updated_at: new Date().toISOString(),
+            created_at: new Date().toISOString()
+          };
+          if (!data.path) return toast('warning', 'Path required');
+          try {
+            await State.supabase.from('seo_pages').insert(data);
+            logActivity('CREATE SEO PAGE', data.path);
+            toast('success', 'Added');
+            Modal.close();
+            await loadAllData();
+            renderSeoPages();
+          } catch (err) {
+            toast('error', 'Failed', err.message);
+          }
+        });
+      }
+    });
+  });
+})();
+  /* ============================================================
+   LOCATIONS — RENDER
+   ============================================================ */
+function renderLocations() {
+  const list = State.cache.locations;
+  const el = $('#locationsList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No locations</h4></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Slug</th><th>Status</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(l => `
+            <tr>
+              <td data-label="Name"><strong>${escapeHTML(l.name || '')}</strong></td>
+              <td data-label="Slug"><code>${escapeHTML(l.slug || '')}</code></td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML(l.status || 'published')}">${escapeHTML(l.status || 'published')}</span></td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-edit-loc="${escapeHTML(l.id)}" type="button">Edit</button>
+                  <button class="btn btn-xs btn-danger" data-del-loc="${escapeHTML(l.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-edit-loc]', el).forEach(b => b.addEventListener('click', () => editLocation(b.dataset.editLoc)));
+  $$('[data-del-loc]', el).forEach(b => b.addEventListener('click', () => deleteLocation(b.dataset.delLoc)));
+}
+
+/* ---------- Add Location ---------- */
+(function () {
+  const btn = $('#addLocationBtn');
+  if (btn) btn.addEventListener('click', () => editLocation(null));
+})();
+
+/* ---------- Edit / Add ---------- */
+function editLocation(id) {
+  const l = id ? State.cache.locations.find(x => x.id === id) : null;
+  Modal.open({
+    title: l ? 'Edit Location' : 'Add Location',
+    body: `
+      <div class="field mb">
+        <label>Name</label>
+        <input type="text" id="loName" value="${escapeHTML(l?.name || '')}">
+      </div>
+      <div class="field mb">
+        <label>Slug</label>
+        <input type="text" id="loSlug" value="${escapeHTML(l?.slug || '')}" placeholder="tirupur">
+      </div>
+      <div class="field mb">
+        <label>SEO Title</label>
+        <input type="text" id="loTitle" value="${escapeHTML(l?.seo_title || '')}">
+      </div>
+      <div class="field mb">
+        <label>Meta Description</label>
+        <textarea id="loDesc" rows="2">${escapeHTML(l?.meta_description || '')}</textarea>
+      </div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn btn-primary" data-save type="button">Save</button>
+    `,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = {
+          name: $('#loName').value.trim(),
+          slug: $('#loSlug').value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-'),
+          seo_title: $('#loTitle').value.trim(),
+          meta_description: $('#loDesc').value.trim(),
+          status: 'published',
+          updated_at: new Date().toISOString()
+        };
+        if (!data.name || !data.slug) return toast('warning', 'Name and slug required');
+        try {
+          if (l) {
+            await State.supabase.from('locations').update(data).eq('id', l.id);
+          } else {
+            await State.supabase.from('locations').insert({ ...data, created_at: new Date().toISOString() });
+          }
+          logActivity(l ? 'UPDATE LOCATION' : 'CREATE LOCATION', data.name);
+          toast('success', 'Saved');
+          Modal.close();
+          await loadAllData();
+          renderLocations();
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      });
+    }
+  });
+}
+
+/* ---------- Delete ---------- */
+function deleteLocation(id) {
+  const l = State.cache.locations.find(x => x.id === id);
+  if (!l) return;
+  confirmDialog({
+    title: 'Delete location?',
+    message: `Delete "${l.name}"?`,
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('locations').delete().eq('id', id);
+        logActivity('DELETE LOCATION', l.name);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderLocations();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+}
+
+/* ============================================================
+   PROGRAMMATIC SEO — GENERATOR
+   ============================================================ */
+(function () {
+  const btn = $('#pgGenerateBtn');
+  if (!btn) return;
+  btn.addEventListener('click', () => {
+    const service = $('#pgService').value.trim();
+    const location = $('#pgLocation').value.trim();
+    const business = $('#pgBusiness').value.trim();
+    const intent = $('#pgIntent').value.trim();
+
+    if (!service || !location) return toast('warning', 'Service and Location required');
+
+    const title = `${intent ? intent + ' — ' : ''}${service} in ${location}${business ? ' for ' + business : ''}`;
+    const slug = [service, location, business, intent]
+      .filter(Boolean)
+      .join('-')
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, '-');
+
+    const cand = $('#pgCandidates');
+    if (!cand) return;
+
+    cand.innerHTML = `
+      <div class="card" style="padding:1rem">
+        <div class="flex-between mb">
+          <div>
+            <strong>${escapeHTML(title)}</strong>
+            <div class="td-muted" style="font-size:0.75rem">/${escapeHTML(slug)}</div>
+          </div>
+        </div>
+        <div class="td-actions">
+          <button class="btn btn-xs btn-ghost" id="pgDiscard" type="button">Discard</button>
+          <button class="btn btn-xs btn-primary" id="pgQueue" type="button">Queue for Approval</button>
+        </div>
+      </div>
+    `;
+
+    $('#pgDiscard').addEventListener('click', () => { cand.innerHTML = ''; });
+    $('#pgQueue').addEventListener('click', async () => {
+      const data = {
+        title,
+        slug,
+        path: '/' + slug,
+        service,
+        location,
+        business_type: business,
+        search_intent: intent,
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
+      try {
+        await State.supabase.from('seo_pages').insert(data);
+        logActivity('CREATE SEO CANDIDATE', slug);
+        toast('success', 'Queued');
+        cand.innerHTML = '';
+        await loadAllData();
+        renderPendingPg();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    });
+  });
+})();
+
+/* ============================================================
+   PROGRAMMATIC SEO — PENDING APPROVAL LIST
+   ============================================================ */
+function renderPendingPg() {
+  const list = State.cache.seoPages.filter(s => s.status === 'pending');
+  const el = $('#pgPending');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty" style="padding:1.5rem 1rem"><p>No pending candidates.</p></div>';
+    return;
+  }
+
+  el.innerHTML = list.map(s => `
+    <div class="info-row">
+      <div>
+        <strong>${escapeHTML(s.title || s.slug || '')}</strong>
+        <div class="td-muted" style="font-size:0.72rem">/${escapeHTML(s.slug || '')}</div>
+      </div>
+      <div class="td-actions">
+        <button class="btn btn-xs btn-success" data-pg-approve="${escapeHTML(s.id)}" type="button">Approve</button>
+        <button class="btn btn-xs btn-danger" data-pg-reject="${escapeHTML(s.id)}" type="button">Reject</button>
+      </div>
+    </div>
+  `).join('');
+
+  $$('[data-pg-approve]', el).forEach(b => b.addEventListener('click', async () => {
+    try {
+      await State.supabase.from('seo_pages').update({ status: 'published' }).eq('id', b.dataset.pgApprove);
+      logActivity('PUBLISH SEO PAGE', b.dataset.pgApprove);
+      toast('success', 'Published');
+      await loadAllData();
+      renderPendingPg();
+    } catch (err) {
+      toast('error', 'Failed', err.message);
+    }
+  }));
+  $$('[data-pg-reject]', el).forEach(b => b.addEventListener('click', async () => {
+    try {
+      await State.supabase.from('seo_pages').delete().eq('id', b.dataset.pgReject);
+      logActivity('REJECT SEO PAGE', b.dataset.pgReject);
+      toast('info', 'Rejected');
+      await loadAllData();
+      renderPendingPg();
+    } catch (err) {
+      toast('error', 'Failed', err.message);
+    }
+  }));
+      }
+  /* ============================================================
+   LEADS CRM — SEARCH + FILTER BINDING
+   ============================================================ */
+(function () {
+  const ls = $('#leadsSearch');
+  const lf = $('#leadsFilter');
+  if (ls) ls.addEventListener('input', debounce(renderLeads, 250));
+  if (lf) lf.addEventListener('change', renderLeads);
+})();
+
+/* ============================================================
+   LEADS CRM — RENDER
+   ============================================================ */
+function renderLeads() {
+  const search = ($('#leadsSearch')?.value || '').toLowerCase();
+  const filter = $('#leadsFilter')?.value || '';
+  let list = State.cache.leads.slice();
+
+  if (search) {
+    list = list.filter(l =>
+      (l.name || '').toLowerCase().includes(search) ||
+      (l.business || '').toLowerCase().includes(search) ||
+      (l.email || '').toLowerCase().includes(search)
+    );
+  }
+  if (filter) list = list.filter(l => l.status === filter);
+
+  const el = $('#leadsList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No leads found</h4><p>Leads appear here. Only admins can view them.</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th><th>Business</th><th>Service</th><th>Budget</th><th>Status</th><th>Date</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.slice(0, 100).map(l => `
+            <tr>
+              <td data-label="Name">
+                <strong>${escapeHTML(l.name || '')}</strong>
+                <div class="td-muted">${escapeHTML(l.whatsapp || '')}</div>
+              </td>
+              <td data-label="Business">${escapeHTML(l.business || '—')}</td>
+              <td data-label="Service">${escapeHTML(l.service || '—')}</td>
+              <td data-label="Budget">${escapeHTML(l.budget || '—')}</td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML((l.status || 'new').replace('-', ''))}">${escapeHTML(l.status || 'new')}</span></td>
+              <td data-label="Date" class="td-muted">${formatDate(l.created_at)}</td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-view-lead="${escapeHTML(l.id)}" type="button">View</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-view-lead]', el).forEach(b => b.addEventListener('click', () => viewLead(b.dataset.viewLead)));
+}
+
+/* ============================================================
+   LEADS CRM — VIEW / EDIT
+   ============================================================ */
+function viewLead(id) {
+  const l = State.cache.leads.find(x => x.id === id);
+  if (!l) return;
+
+  Modal.open({
+    title: l.name || 'Lead',
+    sub: l.business || '',
+    wide: true,
+    body: `
+      <div class="editor-grid">
+        <div class="field"><label>Name</label><input type="text" value="${escapeHTML(l.name || '')}" readonly></div>
+        <div class="field"><label>Business</label><input type="text" value="${escapeHTML(l.business || '')}" readonly></div>
+        <div class="field"><label>WhatsApp</label><input type="text" value="${escapeHTML(l.whatsapp || '')}" readonly></div>
+        <div class="field"><label>Email</label><input type="text" value="${escapeHTML(l.email || '')}" readonly></div>
+        <div class="field"><label>Location</label><input type="text" value="${escapeHTML(l.location || '')}" readonly></div>
+        <div class="field"><label>Service</label><input type="text" value="${escapeHTML(l.service || '')}" readonly></div>
+        <div class="field"><label>Budget</label><input type="text" value="${escapeHTML(l.budget || '')}" readonly></div>
+        <div class="field"><label>Timeline</label><input type="text" value="${escapeHTML(l.timeline || '')}" readonly></div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Requirements</label>
+          <textarea readonly>${escapeHTML(l.requirements || '')}</textarea>
+        </div>
+        <div class="field" style="grid-column:1/-1">
+          <label>Internal Notes</label>
+          <textarea id="leadNotes">${escapeHTML(l.notes || '')}</textarea>
+        </div>
+      </div>
+      <div class="field mt">
+        <label>Status</label>
+        <select id="leadStatus">
+          ${['new', 'contacted', 'qualified', 'quotation', 'negotiation', 'won', 'lost', 'follow-up']
+            .map(s => `<option value="${s}"${l.status === s ? ' selected' : ''}>${s}</option>`)
+            .join('')}
+        </select>
+      </div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Close</button>
+      <button class="btn btn-danger" data-delete type="button">Delete</button>
+      <button class="btn btn-primary" data-save type="button">Save</button>
+    `,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+
+      $('[data-save]').addEventListener('click', async () => {
+        try {
+          await State.supabase.from('leads').update({
+            status: $('#leadStatus').value,
+            notes: $('#leadNotes').value.trim(),
+            updated_at: new Date().toISOString()
+          }).eq('id', l.id);
+          logActivity('UPDATE LEAD', l.name);
+          toast('success', 'Updated');
+          Modal.close();
+          await loadAllData();
+          renderLeads();
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      });
+
+      $('[data-delete]').addEventListener('click', () => {
+        confirmDialog({
+          title: 'Delete lead?',
+          message: `Delete "${l.name}"?`,
+          onConfirm: async () => {
+            await State.supabase.from('leads').delete().eq('id', l.id);
+            logActivity('DELETE LEAD', l.name);
+            toast('success', 'Deleted');
+            Modal.close();
+            await loadAllData();
+            renderLeads();
+          }
+        });
+      });
+    }
+  });
+}
+
+/* ============================================================
+   LEADS CRM — ADD NEW
+   ============================================================ */
+(function () {
+  const btn = $('#addLeadBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    Modal.open({
+      title: 'Add Lead',
+      body: `
+        <div class="field-row mb">
+          <div class="field"><label>Name</label><input type="text" id="ldName"></div>
+          <div class="field"><label>Business</label><input type="text" id="ldBusiness"></div>
+        </div>
+        <div class="field-row mb">
+          <div class="field"><label>WhatsApp</label><input type="tel" id="ldWhatsapp"></div>
+          <div class="field"><label>Email</label><input type="email" id="ldEmail"></div>
+        </div>
+        <div class="field-row mb">
+          <div class="field"><label>Location</label><input type="text" id="ldLocation"></div>
+          <div class="field"><label>Service</label><input type="text" id="ldService"></div>
+        </div>
+        <div class="field-row mb">
+          <div class="field"><label>Budget</label><input type="text" id="ldBudget"></div>
+          <div class="field"><label>Timeline</label><input type="text" id="ldTimeline"></div>
+        </div>
+        <div class="field mb">
+          <label>Requirements</label>
+          <textarea id="ldReq" rows="3"></textarea>
+        </div>
+      `,
+      foot: `
+        <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+        <button class="btn btn-primary" data-save type="button">Save</button>
+      `,
+      onOpen: () => {
+        $('[data-cancel]').addEventListener('click', () => Modal.close());
+        $('[data-save]').addEventListener('click', async () => {
+          const data = {
+            name: $('#ldName').value.trim(),
+            business: $('#ldBusiness').value.trim(),
+            whatsapp: $('#ldWhatsapp').value.trim(),
+            email: $('#ldEmail').value.trim(),
+            location: $('#ldLocation').value.trim(),
+            service: $('#ldService').value.trim(),
+            budget: $('#ldBudget').value.trim(),
+            timeline: $('#ldTimeline').value.trim(),
+            requirements: $('#ldReq').value.trim(),
+            status: 'new',
+            source: 'admin',
+            created_at: new Date().toISOString()
+          };
+          if (!data.name) return toast('warning', 'Name required');
+          try {
+            await State.supabase.from('leads').insert(data);
+            logActivity('CREATE LEAD', data.name);
+            toast('success', 'Added');
+            Modal.close();
+            await loadAllData();
+            renderLeads();
+          } catch (err) {
+            toast('error', 'Failed', err.message);
+          }
+        });
+      }
+    });
+  });
+})();
+  /* ============================================================
+   PROJECTS (internal tracker) — RENDER
+   ============================================================ */
+function renderProjects() {
+  const list = State.cache.projects;
+  const el = $('#projectsList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No projects</h4><p>Track active client projects.</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Project</th><th>Client</th><th>Status</th><th>Deadline</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(p => `
+            <tr>
+              <td data-label="Project"><strong>${escapeHTML(p.name || '')}</strong></td>
+              <td data-label="Client">${escapeHTML(p.client || '—')}</td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML((p.status || 'planning').replace('-', ''))}">${escapeHTML(p.status || 'planning')}</span></td>
+              <td data-label="Deadline" class="td-muted">${formatDate(p.deadline)}</td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-edit-proj="${escapeHTML(p.id)}" type="button">Edit</button>
+                  <button class="btn btn-xs btn-danger" data-del-proj="${escapeHTML(p.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-edit-proj]', el).forEach(b => b.addEventListener('click', () => editProject(b.dataset.editProj)));
+  $$('[data-del-proj]', el).forEach(b => b.addEventListener('click', () => deleteProject(b.dataset.delProj)));
+}
+
+/* ---------- Add Project ---------- */
+(function () {
+  const btn = $('#addProjectBtn');
+  if (btn) btn.addEventListener('click', () => editProject(null));
+})();
+
+/* ---------- Edit / Add ---------- */
+function editProject(id) {
+  const p = id ? State.cache.projects.find(x => x.id === id) : null;
+  Modal.open({
+    title: p ? 'Edit Project' : 'Add Project',
+    body: `
+      <div class="field mb">
+        <label>Project Name</label>
+        <input type="text" id="pjName" value="${escapeHTML(p?.name || '')}">
+      </div>
+      <div class="field mb">
+        <label>Client</label>
+        <input type="text" id="pjClient" value="${escapeHTML(p?.client || '')}">
+      </div>
+      <div class="field mb">
+        <label>Service</label>
+        <input type="text" id="pjService" value="${escapeHTML(p?.service || '')}">
+      </div>
+      <div class="field-row mb">
+        <div class="field">
+          <label>Start Date</label>
+          <input type="date" id="pjStart" value="${p?.start_date || ''}">
+        </div>
+        <div class="field">
+          <label>Deadline</label>
+          <input type="date" id="pjDeadline" value="${p?.deadline || ''}">
+        </div>
+      </div>
+      <div class="field-row mb">
+        <div class="field">
+          <label>Budget</label>
+          <input type="text" id="pjBudget" value="${escapeHTML(p?.budget || '')}">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="pjStatus">
+            ${['planning', 'design', 'development', 'testing', 'client-review', 'completed', 'on-hold', 'cancelled']
+              .map(s => `<option value="${s}"${p?.status === s ? ' selected' : ''}>${s}</option>`)
+              .join('')}
+          </select>
+        </div>
+      </div>
+      <div class="field mb">
+        <label>Notes</label>
+        <textarea id="pjNotes" rows="3">${escapeHTML(p?.notes || '')}</textarea>
+      </div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn btn-primary" data-save type="button">Save</button>
+    `,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = {
+          name: $('#pjName').value.trim(),
+          client: $('#pjClient').value.trim(),
+          service: $('#pjService').value.trim(),
+          start_date: $('#pjStart').value || null,
+          deadline: $('#pjDeadline').value || null,
+          budget: $('#pjBudget').value.trim(),
+          status: $('#pjStatus').value,
+          notes: $('#pjNotes').value.trim(),
+          updated_at: new Date().toISOString()
+        };
+        if (!data.name) return toast('warning', 'Name required');
+        try {
+          if (p) {
+            await State.supabase.from('business_projects').update(data).eq('id', p.id);
+          } else {
+            await State.supabase.from('business_projects').insert({ ...data, created_at: new Date().toISOString() });
+          }
+          logActivity(p ? 'UPDATE PROJECT' : 'CREATE PROJECT', data.name);
+          toast('success', 'Saved');
+          Modal.close();
+          await loadAllData();
+          renderProjects();
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      });
+    }
+  });
+}
+
+/* ---------- Delete ---------- */
+function deleteProject(id) {
+  const p = State.cache.projects.find(x => x.id === id);
+  if (!p) return;
+  confirmDialog({
+    title: 'Delete project?',
+    message: `Delete "${p.name}"?`,
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('business_projects').delete().eq('id', id);
+        logActivity('DELETE PROJECT', p.name);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderProjects();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+}
+  /* ============================================================
+   QUOTES — RENDER
+   ============================================================ */
+function renderQuotes() {
+  const list = State.cache.quotes;
+  const el = $('#quotesList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No quotes</h4></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Client</th><th>Total</th><th>Status</th><th>Valid Until</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          ${list.map(q => `
+            <tr>
+              <td data-label="Client"><strong>${escapeHTML(q.client || '')}</strong></td>
+              <td data-label="Total">₹${escapeHTML(q.total || '0')}</td>
+              <td data-label="Status"><span class="pill pill-${escapeHTML(q.status || 'draft')}">${escapeHTML(q.status || 'draft')}</span></td>
+              <td data-label="Valid Until" class="td-muted">${formatDate(q.valid_until)}</td>
+              <td data-label="Actions">
+                <div class="td-actions">
+                  <button class="btn btn-xs btn-ghost" data-edit-quote="${escapeHTML(q.id)}" type="button">Edit</button>
+                  <button class="btn btn-xs btn-danger" data-del-quote="${escapeHTML(q.id)}" type="button">Delete</button>
+                </div>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  $$('[data-edit-quote]', el).forEach(b => b.addEventListener('click', () => editQuote(b.dataset.editQuote)));
+  $$('[data-del-quote]', el).forEach(b => b.addEventListener('click', () => deleteQuote(b.dataset.delQuote)));
+}
+
+/* ---------- Add Quote ---------- */
+(function () {
+  const btn = $('#addQuoteBtn');
+  if (btn) btn.addEventListener('click', () => editQuote(null));
+})();
+
+/* ---------- Edit / Add ---------- */
+function editQuote(id) {
+  const q = id ? State.cache.quotes.find(x => x.id === id) : null;
+  Modal.open({
+    title: q ? 'Edit Quote' : 'Add Quote',
+    body: `
+      <div class="field-row mb">
+        <div class="field"><label>Client</label><input type="text" id="qtClient" value="${escapeHTML(q?.client || '')}"></div>
+        <div class="field"><label>Project</label><input type="text" id="qtProject" value="${escapeHTML(q?.project || '')}"></div>
+      </div>
+      <div class="field mb">
+        <label>Items / Description</label>
+        <textarea id="qtItems" rows="4">${escapeHTML(q?.items || '')}</textarea>
+      </div>
+      <div class="field-row mb">
+        <div class="field"><label>Subtotal</label><input type="text" id="qtSubtotal" value="${escapeHTML(q?.subtotal || '')}"></div>
+        <div class="field"><label>Discount</label><input type="text" id="qtDiscount" value="${escapeHTML(q?.discount || '')}"></div>
+      </div>
+      <div class="field-row mb">
+        <div class="field"><label>Total</label><input type="text" id="qtTotal" value="${escapeHTML(q?.total || '')}"></div>
+        <div class="field"><label>Valid Until</label><input type="date" id="qtValid" value="${q?.valid_until || ''}"></div>
+      </div>
+      <div class="field mb">
+        <label>Status</label>
+        <select id="qtStatus">
+          ${['draft', 'sent', 'accepted', 'rejected', 'expired']
+            .map(s => `<option value="${s}"${q?.status === s ? ' selected' : ''}>${s}</option>`)
+            .join('')}
+        </select>
+      </div>
+      <div class="field mb">
+        <label>Notes</label>
+        <textarea id="qtNotes" rows="3">${escapeHTML(q?.notes || '')}</textarea>
+      </div>
+    `,
+    foot: `
+      <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+      <button class="btn btn-primary" data-save type="button">Save</button>
+    `,
+    onOpen: () => {
+      $('[data-cancel]').addEventListener('click', () => Modal.close());
+      $('[data-save]').addEventListener('click', async () => {
+        const data = {
+          client: $('#qtClient').value.trim(),
+          project: $('#qtProject').value.trim(),
+          items: $('#qtItems').value.trim(),
+          subtotal: $('#qtSubtotal').value.trim(),
+          discount: $('#qtDiscount').value.trim(),
+          total: $('#qtTotal').value.trim(),
+          valid_until: $('#qtValid').value || null,
+          status: $('#qtStatus').value,
+          notes: $('#qtNotes').value.trim(),
+          updated_at: new Date().toISOString()
+        };
+        if (!data.client) return toast('warning', 'Client required');
+        try {
+          if (q) {
+            await State.supabase.from('quotes').update(data).eq('id', q.id);
+          } else {
+            await State.supabase.from('quotes').insert({ ...data, created_at: new Date().toISOString() });
+          }
+          logActivity(q ? 'UPDATE QUOTE' : 'CREATE QUOTE', data.client);
+          toast('success', 'Saved');
+          Modal.close();
+          await loadAllData();
+          renderQuotes();
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      });
+    }
+  });
+}
+
+/* ---------- Delete ---------- */
+function deleteQuote(id) {
+  const q = State.cache.quotes.find(x => x.id === id);
+  if (!q) return;
+  confirmDialog({
+    title: 'Delete quote?',
+    message: `Delete quote for "${q.client}"?`,
+    onConfirm: async () => {
+      try {
+        await State.supabase.from('quotes').delete().eq('id', id);
+        logActivity('DELETE QUOTE', q.client);
+        toast('success', 'Deleted');
+        await loadAllData();
+        renderQuotes();
+      } catch (err) {
+        toast('error', 'Failed', err.message);
+      }
+    }
+  });
+}
+
+/* ============================================================
+   MEDIA LIBRARY — RENDER
+   ============================================================ */
+function renderMedia() {
+  const list = State.cache.media;
+  const el = $('#mediaList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No media</h4><p>Upload your first image.</p></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="media-grid">
+      ${list.map(m => `
+        <div class="media-item" data-media-id="${escapeHTML(m.id)}">
+          <div class="media-thumb">
+            ${m.url ? `<img src="${escapeHTML(m.url)}" loading="lazy">` : ''}
+          </div>
+          <div class="media-info">
+            <div class="media-name">${escapeHTML(m.filename || 'image')}</div>
+            <div class="media-meta">${formatDate(m.created_at)}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  $$('[data-media-id]', el).forEach(x => x.addEventListener('click', () => {
+    const m = State.cache.media.find(y => y.id === x.dataset.mediaId);
+    if (!m) return;
+
+    Modal.open({
+      title: m.filename || 'Image',
+      body: `
+        <div class="img-preview mb">${m.url ? `<img src="${escapeHTML(m.url)}">` : ''}</div>
+        <div class="info-row"><span class="k">Bucket</span><span class="v">${escapeHTML(m.bucket || '')}</span></div>
+        <div class="info-row"><span class="k">Path</span><span class="v" style="word-break:break-all">${escapeHTML(m.path || '')}</span></div>
+        <div class="info-row">
+          <span class="k">URL</span>
+          <span class="v" style="word-break:break-all">
+            <a href="${escapeHTML(m.url)}" target="_blank" rel="noopener" style="color:var(--orange)">Open →</a>
+          </span>
+        </div>
+      `,
+      foot: `
+        <button class="btn btn-ghost" data-cancel type="button">Close</button>
+        <button class="btn btn-danger" data-del type="button">Delete</button>
+      `,
+      onOpen: () => {
+        $('[data-cancel]').addEventListener('click', () => Modal.close());
+        $('[data-del]').addEventListener('click', () => {
+          confirmDialog({
+            title: 'Delete image?',
+            message: `Delete "${m.filename}"?`,
+            onConfirm: async () => {
+              try {
+                await State.supabase.storage.from(m.bucket).remove([m.path]);
+                await State.supabase.from('media').delete().eq('id', m.id);
+                logActivity('DELETE MEDIA', m.filename);
+                toast('success', 'Deleted');
+                Modal.close();
+                await loadAllData();
+                renderMedia();
+              } catch (err) {
+                toast('error', 'Failed', err.message);
+              }
+            }
+          });
+        });
+      }
+    });
+  }));
+}
+
+/* ---------- Media upload ---------- */
+(function () {
+  const input = $('#mediaUpload');
+  if (!input) return;
+
+  input.addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+
+    for (const f of files) {
+      if (!['image/png', 'image/jpeg', 'image/webp'].includes(f.type)) {
+        toast('warning', 'Invalid file', f.name);
+        continue;
+      }
+      if (f.size > 5 * 1024 * 1024) {
+        toast('warning', 'Too large', f.name);
+        continue;
+      }
+      try {
+        const path = `media/${Date.now()}_${f.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const { error: upErr } = await State.supabase.storage
+          .from('media')
+          .upload(path, f, { upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = State.supabase.storage.from('media').getPublicUrl(path);
+        await State.supabase.from('media').insert({
+          filename: f.name,
+          path,
+          url: pub.publicUrl,
+          bucket: 'media',
+          size: f.size,
+          type: f.type,
+          created_at: new Date().toISOString()
+        });
+      } catch (err) {
+        toast('error', 'Upload failed', err.message);
+      }
+    }
+
+    toast('success', 'Upload complete');
+    await loadAllData();
+    renderMedia();
+    e.target.value = '';
+  });
+})();
+
+/* ============================================================
+   ACTIVITY LOG — RENDER
+   ============================================================ */
+function renderActivity() {
+  const list = State.cache.activity;
+  const el = $('#activityList');
+  if (!el) return;
+
+  if (!list.length) {
+    el.innerHTML = '<div class="empty"><h4>No activity yet</h4></div>';
+    return;
+  }
+
+  el.innerHTML = `
+    <div class="card">
+      ${list.map(a => `
+        <div class="info-row">
+          <div>
+            <div style="font-weight:500">${escapeHTML(a.action || '')}</div>
+            <div class="td-muted">${escapeHTML(a.user_email || '')} · ${escapeHTML(a.resource || '')}</div>
+          </div>
+          <div class="td-muted" style="font-size:0.72rem">${formatDateTime(a.created_at)}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+      }
+  /* ============================================================
+   SETTINGS — SAVE
+   ============================================================ */
+(function () {
+  const btn = $('#saveSettingsBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    const data = {
+      site_name: $('#setSiteName').value.trim(),
+      founder_name: $('#setFounderName').value.trim(),
+      address: $('#setAddress').value.trim(),
+      whatsapp: $('#setWhatsapp').value.trim(),
+      email: $('#setEmail').value.trim(),
+      maintenance: $('#setMaintenance').checked,
+      updated_at: new Date().toISOString()
+    };
+
+    btn.disabled = true;
+    const orig = btn.textContent;
+    btn.textContent = 'Saving...';
+
+    try {
+      if (State.supabase) {
+        const { data: ex } = await State.supabase
+          .from('site_settings')
+          .select('id')
+          .eq('section', 'global')
+          .maybeSingle();
+
+        if (ex) {
+          await State.supabase.from('site_settings').update({ content: data }).eq('id', ex.id);
+        } else {
+          await State.supabase.from('site_settings').insert({
+            section: 'global',
+            content: data,
+            status: 'published',
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+      logActivity('UPDATE SETTINGS', 'global');
+      toast('success', 'Settings saved');
+    } catch (err) {
+      toast('error', 'Save failed', err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = orig;
+    }
+  });
+})();
+
+/* ============================================================
+   SECURITY — CHANGE PASSWORD (reset email)
+   ============================================================ */
+(function () {
+  const btn = $('#changePasswordBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    Modal.open({
+      title: 'Change Password',
+      body: `
+        <p class="muted" style="font-size:0.88rem;line-height:1.7;margin-bottom:1.25rem">
+          We'll send a password reset link to your registered email address.
+        </p>
+        <div class="field">
+          <label>Email</label>
+          <input type="email" id="cpEmail" value="${escapeHTML(State.user?.email || '')}" readonly>
+        </div>
+      `,
+      foot: `
+        <button class="btn btn-ghost" data-cancel type="button">Cancel</button>
+        <button class="btn btn-primary" data-send type="button">Send Reset Link</button>
+      `,
+      onOpen: () => {
+        $('[data-cancel]').addEventListener('click', () => Modal.close());
+        $('[data-send]').addEventListener('click', async () => {
+          try {
+            const { error } = await State.supabase.auth.resetPasswordForEmail(State.user.email);
+            if (error) throw error;
+            logActivity('PASSWORD RESET', State.user.email);
+            toast('success', 'Reset email sent', 'Check your inbox.');
+            Modal.close();
+          } catch (err) {
+            toast('error', 'Failed', err.message);
+          }
+        });
+      }
+    });
+  });
+})();
+
+/* ============================================================
+   SECURITY — SIGN OUT ALL SESSIONS
+   ============================================================ */
+(function () {
+  const btn = $('#logoutAllBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', () => {
+    confirmDialog({
+      title: 'Sign out all sessions?',
+      message: 'You will be signed out from every device.',
+      confirmLabel: 'Sign Out All',
+      onConfirm: async () => {
+        try {
+          await State.supabase.auth.signOut({ scope: 'global' });
+          logActivity('LOGOUT ALL', 'global');
+          toast('success', 'Signed out everywhere');
+          setTimeout(() => location.reload(), 600);
+        } catch (err) {
+          toast('error', 'Failed', err.message);
+        }
+      }
+    });
+  });
+})();
+
+/* ============================================================
+   GLOBAL SEARCH
+   ============================================================ */
+(function () {
+  const input = $('#globalSearch');
+  if (!input) return;
+
+  input.addEventListener('input', debounce((e) => {
+    const q = e.target.value.trim().toLowerCase();
+    if (!q) return;
+
+    const results = [];
+
+    State.cache.work.forEach(w => {
+      if ((w.title || '').toLowerCase().includes(q)) {
+        results.push({ type: 'Work', label: w.title, page: 'work' });
+      }
+    });
+    State.cache.leads.forEach(l => {
+      if ((l.name || '').toLowerCase().includes(q) || (l.business || '').toLowerCase().includes(q)) {
+        results.push({ type: 'Lead', label: l.name, page: 'leads' });
+      }
+    });
+    State.cache.reviews.forEach(r => {
+      if ((r.name || '').toLowerCase().includes(q)) {
+        results.push({ type: 'Review', label: r.name, page: 'reviews' });
+      }
+    });
+    State.cache.services.forEach(s => {
+      if ((s.name || '').toLowerCase().includes(q)) {
+        results.push({ type: 'Service', label: s.name, page: 'services' });
+      }
+    });
+    State.cache.projects.forEach(p => {
+      if ((p.name || '').toLowerCase().includes(q)) {
+        results.push({ type: 'Project', label: p.name, page: 'projects' });
+      }
+    });
+
+    if (!results.length) {
+      return toast('info', 'No results', `Nothing matches "${q}"`);
+    }
+
+    Modal.open({
+      title: `Search: "${q}"`,
+      body: results.slice(0, 20).map(r => `
+        <div class="info-row" data-nav="${r.page}" style="cursor:pointer">
+          <div>
+            <span class="pill pill-draft" style="margin-right:0.6rem">${escapeHTML(r.type)}</span>
+            <strong>${escapeHTML(r.label || '')}</strong>
+          </div>
+          <span style="color:var(--orange);font-size:0.8rem">→</span>
+        </div>
+      `).join(''),
+      onOpen: () => {
+        $$('[data-nav]').forEach(x => x.addEventListener('click', () => {
+          navigate(x.dataset.nav);
+          Modal.close();
+        }));
+      }
+    });
+  }, 350));
+})();
+
+/* ============================================================
+   REFRESH BUTTON
+   ============================================================ */
+(function () {
+  const btn = $('#refreshBtn');
+  if (!btn) return;
+
+  btn.addEventListener('click', async () => {
+    toast('info', 'Refreshing...');
+    await loadAllData();
+    navigate(State.currentPage);
+    toast('success', 'Refreshed');
+  });
+})();
+
+/* ============================================================
+   KEYBOARD SHORTCUT — Cmd/Ctrl + K
+   ============================================================ */
+document.addEventListener('keydown', (e) => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+    e.preventDefault();
+    const s = $('#globalSearch');
+    if (s) s.focus();
+  }
+});
+  /* ============================================================
+   CONSOLE BRANDING
+   ============================================================ */
+console.log(
+  '%c NOCTIS ADMIN ',
+  'background:#c96a32;color:#151311;font-size:14px;font-weight:bold;padding:6px 12px;border-radius:4px;'
+);
+console.log(
+  '%c Admin panel loaded — connected to Supabase ',
+  'color:#cdb895;font-size:11px;'
+);
+console.log(
+  '%c Security: RLS enforces access. Frontend checks are UX only. ',
+  'color:#b7aa98;font-size:10px;'
+);
+console.log(
+  '%c Project: https://fdvjfhdqdtfdkzjjupdp.supabase.co ',
+  'color:#b7aa98;font-size:10px;'
+);
+</script>
+</body>
+</html>
