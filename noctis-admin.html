@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Noctis CMS — Admin</title>
+<meta name="theme-color" content="#0d0d0f">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#0b0b0d;--panel:#111216;--panel2:#17181d;--line:#272930;--text:#f5f2ea;--muted:#9699a3;--accent:#c96a32;--accent2:#e28a50;--green:#58c58b;--red:#e56d6d;--yellow:#e9bd62;--r:16px;--shadow:0 24px 70px #0008}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}button,input,textarea,select{font:inherit}button{cursor:pointer}a{color:inherit;text-decoration:none}
+.app{min-height:100vh}.hidden{display:none!important}
+.login{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at 50% 0,#2a1710 0,#0b0b0d 45%)}.login-card{width:min(430px,100%);background:#111216;border:1px solid var(--line);border-radius:24px;padding:30px;box-shadow:var(--shadow)}.logo{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.1em}.dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 5px #c96a3220}.login h1{font-size:30px;margin:28px 0 8px}.login p{color:var(--muted);line-height:1.6}
+.field{display:flex;flex-direction:column;gap:7px;margin:14px 0}.field label{font-size:12px;text-transform:uppercase;letter-spacing:.12em;color:#bfc0c7}.field input,.field textarea,.field select,.json{width:100%;background:#0b0c0f;border:1px solid var(--line);color:var(--text);border-radius:11px;padding:12px 13px;outline:none}.field input:focus,.field textarea:focus,.field select:focus,.json:focus{border-color:#c96a3280;box-shadow:0 0 0 3px #c96a3215}.field textarea{min-height:110px;resize:vertical}.json{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;min-height:330px;font-size:12px;line-height:1.55}
+.btn{border:1px solid var(--line);background:#18191e;color:var(--text);border-radius:10px;padding:10px 14px;font-weight:700}.btn:hover{border-color:#555862;background:#202126}.btn.primary{background:var(--accent);border-color:var(--accent);color:#17100c}.btn.green{border-color:#397b59;background:#163321;color:#bff2d4}.btn.danger{border-color:#7b3838;background:#321717;color:#ffbcbc}.btn.small{padding:7px 10px;font-size:12px}.actions{display:flex;gap:8px;flex-wrap:wrap}.status{font-size:12px;color:var(--muted);min-height:18px}.error{color:#ff9e9e}.ok{color:#8ee8b4}
+
+.shell{display:grid;grid-template-columns:250px 1fr;min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);background:#0d0e11;padding:20px 14px;display:flex;flex-direction:column}.brand{padding:5px 10px 22px;border-bottom:1px solid var(--line)}.brand strong{font-size:15px;letter-spacing:.1em}.brand small{display:block;color:var(--muted);margin-top:5px}.nav{padding:16px 0;overflow:auto}.nav button{width:100%;text-align:left;background:transparent;color:#aaaeb8;border:0;border-radius:10px;padding:11px 12px;margin:2px 0}.nav button:hover,.nav button.active{background:#1a1b20;color:#fff}.nav button.active{box-shadow:inset 2px 0 var(--accent)}.side-bottom{margin-top:auto;border-top:1px solid var(--line);padding-top:14px}.main{min-width:0}.topbar{height:70px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;background:#0b0b0de8;backdrop-filter:blur(16px);z-index:20}.mobile-menu{display:none}.content{padding:24px;max-width:1500px;margin:auto}.page-title{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px}.page-title h1{font-size:clamp(25px,3vw,38px);margin:0}.page-title p{color:var(--muted);margin:6px 0 0}.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px}.stat{font-size:28px;font-weight:800}.muted{color:var(--muted)}.grid2{display:grid;grid-template-columns:1.2fr .8fr;gap:16px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px;margin-bottom:16px}.panel h2{font-size:17px;margin:0 0 15px}.table-wrap{overflow:auto}.table{width:100%;border-collapse:collapse;min-width:720px}.table th,.table td{padding:12px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.table th{font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:#858994}.table td{font-size:13px}.badge{display:inline-flex;border-radius:999px;padding:4px 8px;font-size:10px;text-transform:uppercase;letter-spacing:.08em;border:1px solid var(--line)}.published{color:#8ee8b4;border-color:#397b59;background:#163321}.draft{color:#e9bd62;border-color:#755e2f;background:#2a2416}.preview{height:calc(100vh - 130px);min-height:600px;border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#fff}.preview iframe{width:100%;height:100%;border:0}.setting-tabs{display:flex;gap:7px;overflow:auto;padding-bottom:10px}.setting-tabs button{white-space:nowrap}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.item-row{border:1px solid var(--line);border-radius:12px;padding:12px;margin:8px 0;background:#0c0d10}.toast{position:fixed;right:18px;bottom:18px;z-index:100;padding:12px 15px;border-radius:12px;background:#1b1d22;border:1px solid var(--line);box-shadow:var(--shadow);max-width:360px}.danger-text{color:#ff9b9b}.empty{padding:28px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+@media(max-width:1050px){.cards{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.sidebar{width:230px}.shell{grid-template-columns:230px 1fr}}
+@media(max-width:760px){.shell{display:block}.sidebar{position:fixed;left:0;right:0;top:0;width:auto;height:auto;z-index:50;padding:0 14px;border-right:0;border-bottom:1px solid var(--line)}.brand{height:60px;padding:0;display:flex;align-items:center;justify-content:space-between;border:0}.mobile-menu{display:block;background:#0d0e11;border:1px solid var(--line);border-radius:12px;padding:8px;margin-bottom:10px}.nav{display:none}.sidebar.open .nav{display:block;max-height:65vh;overflow:auto}.sidebar.open{height:auto}.side-bottom{display:none}.topbar{margin-top:60px;height:60px;padding:0 14px}.content{padding:15px}.cards{grid-template-columns:1fr 1fr}.grid3,.two-col{grid-template-columns:1fr}.page-title{align-items:flex-start;flex-direction:column}.preview{height:70vh;min-height:450px}.table{min-width:650px}}
+@media(max-width:430px){.cards{grid-template-columns:1fr}.actions .btn{flex:1}.login-card{padding:22px}}
+</style>
+</head>
+<body>
+<div id="login" class="login">
+  <div class="login-card">
+    <div class="logo"><span class="dot"></span> NOCTIS CMS</div>
+    <h1>Admin Console</h1>
+    <p>Manage the live Noctis Technologies website content, services, projects, reviews, pricing and FAQ from one panel.</p>
+    <form id="loginForm">
+      <div class="field"><label>Email</label><input id="email" type="email" autocomplete="username" required></div>
+      <div class="field"><label>Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+      <button class="btn primary" style="width:100%;padding:13px">Sign in</button>
+    </form>
+    <div id="loginStatus" class="status" style="margin-top:12px"></div>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+<div class="shell">
+  <aside id="sidebar" class="sidebar">
+    <div class="brand"><div><strong>NOCTIS CMS</strong><small>Production Admin</small></div><button class="btn small mobile-menu" onclick="toggleSide()">MENU</button></div>
+    <div class="nav" id="nav">
+      <button class="active" data-page="dashboard">Overview</button>
+      <button data-page="content">Website Content</button>
+      <button data-page="services">Services</button>
+      <button data-page="work">Portfolio / Work</button>
+      <button data-page="reviews">Reviews</button>
+      <button data-page="pricing">Pricing</button>
+      <button data-page="faq">FAQ</button>
+      <button data-page="settings">Settings / JSON</button>
+      <button data-page="preview">Live Website</button>
+    </div>
+    <div class="side-bottom"><button class="btn" style="width:100%" onclick="signOut()">Sign out</button></div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><strong id="topTitle">Overview</strong><span id="connection" class="status" style="margin-left:10px">Checking…</span></div><div class="actions"><a class="btn small" href="https://noctistechnologies.com/" target="_blank">Open Site ↗</a><button class="btn small" onclick="refreshCurrent()">Refresh</button></div></header>
+    <section id="content" class="content"></section>
+  </main>
+</div>
+</div>
+<div id="toast" class="toast hidden"></div>
+
+<script>
+const SUPABASE_URL='https://fdvjfhdqdtfdkzjjupdp.supabase.co';
+const SUPABASE_ANON_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZkdmpmaGRxZHRmZGt6amp1cGRwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAxNzIyOTUsImV4cCI6MjEwNTc0ODI5NX0.T1B2QNiQCke1xoBfbIqGidwGoRaAtICW-ygbeP1DMdU';
+const sb=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+const PUBLIC_URL='https://noctistechnologies.com/';
+let currentPage='dashboard', cache={};
+const $=s=>document.querySelector(s);
+const esc=s=>{const d=document.createElement('div');d.textContent=String(s??'');return d.innerHTML};
+const toast=(m,ok=true)=>{const e=$('#toast');e.textContent=m;e.className='toast';e.style.borderColor=ok?'#397b59':'#7b3838';setTimeout(()=>e.className='toast hidden',3000)};
+function toggleSide(){ $('#sidebar').classList.toggle('open') }
+function setStatus(msg,ok=false){$('#connection').textContent=msg;$('#connection').className='status '+(ok?'ok':'error')}
+function err(e){console.error(e);toast(e?.message||String(e),false)}
+
+const tableConfigs={
+ services:{title:'Services',table:'services',fields:[
+  ['name','Name','text'],['short_description','Short description','textarea'],['long_description','Long description','textarea'],['display_order','Order','number'],['status','Status','status']],
+ work:{title:'Portfolio / Work',table:'portfolio_projects',fields:[
+  ['title','Title','text'],['category','Category','text'],['summary','Summary','textarea'],['description','Description','textarea'],['image_url','Image URL','text'],['project_url','Project URL','text'],['display_order','Order','number'],['status','Status','status']],
+ reviews:{title:'Reviews',table:'reviews',fields:[
+  ['name','Client name','text'],['business','Business','text'],['rating','Rating 1–5','number'],['review','Review','textarea'],['status','Status','status']],
+ pricing:{title:'Pricing packages',table:'pricing_packages',fields:[
+  ['name','Package name','text'],['price','Price','text'],['features','Features (one per line)','features'],['display_order','Order','number'],['status','Status','status']],
+ faq:{title:'FAQ',table:'faqs',fields:[
+  ['question','Question','text'],['answer','Answer','textarea'],['display_order','Order','number'],['status','Status','status']]
+]};
+
+const settingDefs={
+ hero:{label:'Hero',fields:{eyebrow:'Eyebrow',headline:'Headline (one line per visual line)',description:'Description',location:'Location',price:'Starting price',ctaPrimary:'Primary CTA',ctaSecondary:'Secondary CTA'}},
+ about:{label:'About',fields:{story:'Founder story',founderName:'Founder name',founderTitle:'Founder title',statement:'Statement'}},
+ why:{label:'Why Noctis',fields:{items:'Why points — one per line'}},
+ process:{label:'Process',fields:{steps:'Process JSON — [{"title":"...","desc":"..."}]'}},
+ contactInfo:{label:'Contact',fields:{headline:'Contact headline',address:'Address',whatsapp:'WhatsApp number',email:'Email'}},
+ footer:{label:'Footer',fields:{tagline:'Footer tagline',copyright:'Copyright',finalLine:'Final line'}},
+ seo:{label:'SEO / Meta',fields:{title:'Page title',description:'Meta description',keywords:'Keywords',canonical:'Canonical URL'}},
+ navigation:{label:'Navigation',fields:{items:'Navigation JSON'}},
+ legal:{label:'Legal',fields:{privacy:'Privacy policy',terms:'Terms & conditions'}}
+};
+
+async function init(){
+ const {data,error}=await sb.auth.getSession();
+ if(data.session){showApp();} else showLogin();
+ if(error) console.warn(error);
+}
+function showLogin(){$('#login').classList.remove('hidden');$('#app').classList.add('hidden')}
+function showApp(){$('#login').classList.add('hidden');$('#app').classList.remove('hidden');setStatus('Connected',true);render('dashboard')}
+async function signOut(){await sb.auth.signOut();showLogin();toast('Signed out')}
+$('#loginForm').addEventListener('submit',async e=>{
+ e.preventDefault();$('#loginStatus').textContent='Signing in…';
+ const {error}=await sb.auth.signInWithPassword({email:$('#email').value,password:$('#password').value});
+ if(error){$('#loginStatus').textContent=error.message;$('#loginStatus').className='status error';return}
+ showApp();
+});
+sb.auth.onAuthStateChange((event,session)=>{if(session)showApp();else if(event==='SIGNED_OUT')showLogin()});
+
+document.querySelectorAll('#nav button').forEach(b=>b.addEventListener('click',()=>{currentPage=b.dataset.page;document.querySelectorAll('#nav button').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('#sidebar').classList.remove('open');render(currentPage)}));
+
+async function render(page){
+ $('#topTitle').textContent=({dashboard:'Overview',content:'Website Content',services:'Services',work:'Portfolio / Work',reviews:'Reviews',pricing:'Pricing',faq:'FAQ',settings:'Settings / JSON',preview:'Live Website'})[page]||page;
+ if(page==='dashboard')return dashboard();
+ if(page==='content')return contentPage();
+ if(page==='settings')return settingsPage();
+ if(page==='preview')return previewPage();
+ if(tableConfigs[page])return tablePage(page);
+}
+async function refreshCurrent(){render(currentPage)}
+
+async function count(t){const {count,error}=await sb.from(t).select('*',{count:'exact',head:true});if(error)throw error;return count||0}
+async function dashboard(){
+ $('#content').innerHTML='<div class="page-title"><div><h1>Command Center</h1><p>One place to control the public website.</p></div><div class="actions"><button class="btn primary" onclick="render(\'content\')">Edit Website</button><button class="btn" onclick="render(\'preview\')">Preview ↗</button></div></div><div id="dashCards" class="cards"><div class="card">Loading…</div></div><div class="grid2" style="margin-top:16px"><div class="panel"><h2>CMS architecture</h2><p class="muted">Your public page already reads published content from Supabase. This console manages the same tables and site settings used by the public page.</p><div class="actions" style="margin-top:15px"><span class="badge published">Realtime ready</span><span class="badge">Supabase</span><span class="badge">Mobile first</span></div></div><div class="panel"><h2>Important</h2><p class="muted">The browser uses the Supabase anon key. Actual write access is controlled by Supabase Auth + Row Level Security policies. Never put a service_role key in this HTML.</p></div></div>';
+ try{const [s,w,r,p,f]=await Promise.all(['services','portfolio_projects','reviews','pricing_packages','faqs'].map(count));$('#dashCards').innerHTML=[['Services',s],['Projects',w],['Reviews',r],['Pricing',p],['FAQ',f]].map(x=>`<div class="card"><div class="muted">${x[0]}</div><div class="stat">${x[1]}</div><div class="muted">records</div></div>`).join('')}catch(e){err(e)}
+}
+
+async function contentPage(){
+ $('#content').innerHTML=`<div class="page-title"><div><h1>Website Content</h1><p>Edit the text that appears directly on the public website.</p></div><div class="actions"><button class="btn" onclick="render('preview')">View live</button></div></div><div id="contentCards" class="grid2"></div>`;
+ const keys=['hero','about','why','process','contactInfo','footer'];
+ for(const k of keys){const {data,error}=await sb.from('site_settings').select('*').eq('section',k).maybeSingle();if(error)console.warn(k,error);cache[k]=data}
+ $('#contentCards').innerHTML=keys.map(k=>{
+   const d=cache[k]?.content||{}; return `<div class="panel"><h2>${esc(settingDefs[k].label)}</h2><div id="form-${k}"></div><div class="actions" style="margin-top:12px"><button class="btn primary" onclick="saveStructured('${k}')">Save ${esc(settingDefs[k].label)}</button><button class="btn" onclick="reloadSetting('${k}')">Reload</button></div><div id="status-${k}" class="status"></div></div>`
+ }).join('');
+ keys.forEach(k=>buildSettingForm(k,cache[k]?.content||{}));
+}
+function buildSettingForm(k,data){
+ const holder=$('#form-'+k);const fields=settingDefs[k].fields;
+ holder.innerHTML=Object.entries(fields).map(([key,label])=>{
+   let val=data[key]??'';
+   if(key==='items')val=Array.isArray(val)?val.join('\n'):val;
+   if(key==='steps')val=typeof val==='string'?val:JSON.stringify(val||[],null,2);
+   if(key==='items'||key==='story'||key==='statement'||key==='description'||key==='address'||key==='tagline'||key==='finalLine'||key==='privacy'||key==='terms')return `<div class="field"><label>${esc(label)}</label><textarea data-setting="${k}" data-key="${key}">${esc(val)}</textarea></div>`;
+   return `<div class="field"><label>${esc(label)}</label><input data-setting="${k}" data-key="${key}" value="${esc(val)}"></div>`
+ }).join('');
+}
+function readStructured(k){
+ const out={};document.querySelectorAll(`[data-setting="${k}"]`).forEach(e=>out[e.dataset.key]=e.value);
+ if(k==='why')out.items=String(out.items||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);
+ if(k==='process'){try{out.steps=JSON.parse(out.steps||'[]')}catch(e){throw new Error('Process JSON is invalid')}}
+ return out;
+}
+async function saveStructured(k){
+ try{const content=readStructured(k);const existing=cache[k];let q;if(existing?.id)q=sb.from('site_settings').update({content,status:'published',updated_at:new Date().toISOString()}).eq('id',existing.id);else q=sb.from('site_settings').insert({section:k,content,status:'published'});const {error}=await q;if(error)throw error;toast(`${settingDefs[k].label} saved`);$('#status-'+k).textContent='Saved just now';$('#status-'+k).className='status ok';}catch(e){err(e)}
+}
+async function reloadSetting(k){const {data,error}=await sb.from('site_settings').select('*').eq('section',k).maybeSingle();if(error)return err(error);cache[k]=data;buildSettingForm(k,data?.content||{});toast('Reloaded')}
+async function settingsPage(){
+ $('#content').innerHTML=`<div class="page-title"><div><h1>Settings / JSON</h1><p>Advanced editor for any site_settings section. Useful when you add new CMS fields without rebuilding the admin UI.</p></div></div><div class="panel"><div class="setting-tabs">${Object.entries(settingDefs).map(([k,v])=>`<button class="btn small" onclick="loadJsonSetting('${k}')">${esc(v.label)}</button>`).join('')}<button class="btn small" onclick="loadJsonCustom()">Custom section</button></div><div id="jsonEditorArea" class="empty">Choose a section.</div></div>`;
+}
+async function loadJsonSetting(k){
+ const {data,error}=await sb.from('site_settings').select('*').eq('section',k).maybeSingle();if(error)return err(error);cache[k]=data;
+ $('#jsonEditorArea').innerHTML=`<div class="field"><label>Section key</label><input id="jsonSection" value="${esc(k)}" readonly></div><div class="field"><label>Content JSON</label><textarea id="jsonValue" class="json">${esc(JSON.stringify(data?.content||{},null,2))}</textarea></div><div class="actions"><button class="btn primary" onclick="saveJsonSetting()">Save JSON</button><button class="btn" onclick="formatJson()">Format</button></div><div id="jsonStatus" class="status"></div>`;
+}
+function loadJsonCustom(){$('#jsonEditorArea').innerHTML=`<div class="field"><label>New / existing section key</label><input id="jsonSection" placeholder="example: homepageExtras"></div><div class="field"><label>Content JSON</label><textarea id="jsonValue" class="json">{\n  "example": "value"\n}</textarea></div><div class="actions"><button class="btn primary" onclick="saveJsonSetting()">Save JSON</button><button class="btn" onclick="formatJson()">Format</button></div>`}
+function formatJson(){try{$('#jsonValue').value=JSON.stringify(JSON.parse($('#jsonValue').value),null,2)}catch(e){toast('Invalid JSON',false)}}
+async function saveJsonSetting(){
+ try{const section=$('#jsonSection').value.trim();const content=JSON.parse($('#jsonValue').value);if(!section)throw new Error('Section key required');const existing=cache[section];let q=existing?.id?sb.from('site_settings').update({content,status:'published',updated_at:new Date().toISOString()}).eq('id',existing.id):sb.from('site_settings').insert({section,content,status:'published'});const {error}=await q;if(error)throw error;toast('JSON saved');}catch(e){err(e)}
+}
+
+async function tablePage(key){
+ const cfg=tableConfigs[key];$('#content').innerHTML=`<div class="page-title"><div><h1>${esc(cfg.title)}</h1><p>Add, edit, publish, unpublish and delete records.</p></div><button class="btn primary" onclick="openEditor('${key}')">+ Add New</button></div><div class="panel"><div id="table-${key}">Loading…</div></div>`;
+ try{const {data,error}=await sb.from(cfg.table).select('*').order('display_order',{ascending:true,nullsFirst:false});if(error)throw error;cache[cfg.table]=data;$('#table-'+key).innerHTML=data.length?`<div class="table-wrap"><table class="table"><thead><tr>${cfg.fields.map(f=>`<th>${esc(f[1])}</th>`).join('')}<th>Actions</th></tr></thead><tbody>${data.map(r=>`<tr>${cfg.fields.map(f=>`<td>${f[0]==='features'?esc((r[f[0]]||[]).join(', ')):f[0]==='status'?`<span class="badge ${r[f[0]]==='published'?'published':'draft'}">${esc(r[f[0]]||'')}</span>`:esc(String(r[f[0]]??'').slice(0,100))}</td>`).join('')}<td><div class="actions"><button class="btn small" onclick="openEditor('${key}','${r.id}')">Edit</button><button class="btn small danger" onclick="deleteRecord('${key}','${r.id}')">Delete</button></div></td></tr>`).join('')}</tbody></table></div>`:'<div class="empty">No records yet.</div>'}catch(e){err(e);$('#table-'+key).innerHTML=`<div class="empty danger-text">${esc(e.message)}</div>`}
+}
+function openEditor(key,id){
+ const cfg=tableConfigs[key], row=id?(cache[cfg.table]||[]).find(x=>x.id===id):{};
+ const modal=document.createElement('div');modal.id='editorModal';modal.style='position:fixed;inset:0;background:#000b;z-index:100;display:grid;place-items:center;padding:15px';
+ modal.innerHTML=`<div class="panel" style="width:min(720px,100%);max-height:92vh;overflow:auto;box-shadow:var(--shadow)"><div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><h2>${id?'Edit':'Add'} ${esc(cfg.title)}</h2><button class="btn small" onclick="closeEditor()">Close</button></div><form id="editorForm">${cfg.fields.map(f=>fieldHTML(f,row[f[0]])).join('')}<div class="actions" style="margin-top:16px"><button class="btn primary">Save</button><button type="button" class="btn" onclick="closeEditor()">Cancel</button></div><div id="editorStatus" class="status"></div></form></div>`;
+ document.body.appendChild(modal);
+ $('#editorForm').onsubmit=async e=>{e.preventDefault();await saveRecord(key,id)}
+}
+function fieldHTML(f,v=''){
+ const [key,label,type]=f;v=v??'';let input='';
+ if(type==='textarea')input=`<textarea name="${key}">${esc(v)}</textarea>`;
+ else if(type==='features')input=`<textarea name="${key}" placeholder="One feature per line">${esc(Array.isArray(v)?v.join('\n'):v)}</textarea>`;
+ else if(type==='status')input=`<select name="${key}"><option value="published" ${v==='published'?'selected':''}>Published</option><option value="draft" ${v!=='published'?'selected':''}>Draft</option></select>`;
+ else input=`<input name="${key}" type="${type==='number'?'number':'text'}" value="${esc(v)}">`;
+ return `<div class="field"><label>${esc(label)}</label>${input}</div>`;
+}
+function closeEditor(){document.getElementById('editorModal')?.remove()}
+async function saveRecord(key,id){
+ try{const cfg=tableConfigs[key],fd=new FormData($('#editorForm')),payload={};cfg.fields.forEach(([k,l,t])=>{let v=fd.get(k);if(t==='number')v=v===''?null:Number(v);if(t==='features')v=String(v||'').split(/\n+/).map(x=>x.trim()).filter(Boolean);payload[k]=v});let q=id?sb.from(cfg.table).update(payload).eq('id',id):sb.from(cfg.table).insert(payload);const {error}=await q;if(error)throw error;closeEditor();toast('Saved successfully');tablePage(key)}catch(e){$('#editorStatus').textContent=e.message;$('#editorStatus').className='status error'}}
+async function deleteRecord(key,id){
+ if(!confirm('Delete this record permanently?'))return;const {error}=await sb.from(tableConfigs[key].table).delete().eq('id',id);if(error)return err(error);toast('Deleted');tablePage(key)
+}
+
+async function previewPage(){
+ $('#content').innerHTML=`<div class="page-title"><div><h1>Live Website</h1><p>See the public website while you manage its content.</p></div><div class="actions"><a class="btn primary" href="${PUBLIC_URL}" target="_blank">Open Fullscreen ↗</a></div></div><div class="preview"><iframe src="${PUBLIC_URL}" title="Noctis public website preview"></iframe></div>`;
+}
+sb.channel('noctis-admin-live').on('postgres_changes',{event:'*',schema:'public',table:'site_settings'},()=>toast('Website content changed')).on('postgres_changes',{event:'*',schema:'public',table:'services'},()=>toast('Services changed')).on('postgres_changes',{event:'*',schema:'public',table:'portfolio_projects'},()=>toast('Portfolio changed')).on('postgres_changes',{event:'*',schema:'public',table:'reviews'},()=>toast('Reviews changed')).on('postgres_changes',{event:'*',schema:'public',table:'pricing_packages'},()=>toast('Pricing changed')).on('postgres_changes',{event:'*',schema:'public',table:'faqs'},()=>toast('FAQ changed')).subscribe();
+init();
+</script>
+</body>
+</html>
